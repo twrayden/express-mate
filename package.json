@@ -1,5 +1,5 @@
 {
-  "name": "libexpress",
+  "name": "express-mate",
   "version": "1.0.0",
   "description": "Helper library that makes your live a little easier when working with express",
   "main": "dist/index.js",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thomasraydeniscool/libexpress.git"
+    "url": "git+https://github.com/thomasraydeniscool/express-mate.git"
   },
   "author": "Thomas Rayden",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/thomasraydeniscool/libexpress/issues"
+    "url": "https://github.com/thomasraydeniscool/express-mate/issues"
   },
-  "homepage": "https://github.com/thomasraydeniscool/libexpress#readme",
+  "homepage": "https://github.com/thomasraydeniscool/express-mate#readme",
   "devDependencies": {
     "@types/express": "^4.16.0",
     "typescript": "^3.1.1"
