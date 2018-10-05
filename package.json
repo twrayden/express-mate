@@ -1,5 +1,5 @@
 {
-  "name": "super-express",
+  "name": "exprest",
   "version": "1.0.0",
   "description": "Helper library that makes your live a little easier when working with express",
   "main": "dist/index.js",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thomasraydeniscool/super-express.git"
+    "url": "git+https://github.com/thomasraydeniscool/exprest.git"
   },
   "author": "Thomas Rayden",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/thomasraydeniscool/super-express/issues"
+    "url": "https://github.com/thomasraydeniscool/exprest/issues"
   },
-  "homepage": "https://github.com/thomasraydeniscool/super-express#readme",
+  "homepage": "https://github.com/thomasraydeniscool/exprest#readme",
   "devDependencies": {
     "@types/express": "^4.16.0",
     "typescript": "^3.1.1"
