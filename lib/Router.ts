@@ -60,13 +60,13 @@ export class Router {
     routes.forEach((route: IRoute) => {
       switch (route.type) {
         case RequestType.GET:
-          this.router.get(route.path, steps(...route.steps));
+          this.router.get(route.path, steps(route.steps));
           break;
         case RequestType.PATCH:
-          this.router.patch(route.path, steps(...route.steps));
+          this.router.patch(route.path, steps(route.steps));
           break;
         case RequestType.POST:
-          this.router.post(route.path, steps(...route.steps));
+          this.router.post(route.path, steps(route.steps));
           break;
         default:
           break;

@@ -24,7 +24,7 @@ export const step = (
     .catch(handleError(res));
 
 export const steps = (
-  ...controllers: Array<
+  controllers: Array<
     (
       req: express.Request,
       res: express.Response,
