@@ -34,16 +34,19 @@ export class Router {
   public static createRoutes(type: RequestType, pre: IPreRoute[]): IRoute[] {
     return pre.map(
       (route): IRoute => {
-        return {
-          ...route,
+        return Object.assign(route, {
           type
-        };
+        });
       }
     );
   }
 
-  public static mergeRoutes(...routes: IRoute[][]): IRoute[] {
-    return ([] as IRoute[]).concat(...routes);
+  public static mergeRoutes(routes: IRoute[][]): IRoute[] {
+    const result: IRoute[] = [];
+    routes.forEach(route => {
+      result.concat(route);
+    });
+    return result;
   }
 
   private router: express.Router;
@@ -53,7 +56,7 @@ export class Router {
     routes =
       arguments.length === 1
         ? routes
-        : Router.mergeRoutes(...Array.from(arguments));
+        : Router.mergeRoutes(Array.from(arguments));
 
     this.router = express.Router();
 
