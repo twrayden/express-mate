@@ -31,7 +31,7 @@ export class Router {
   }
 
   public static mergeRoutes(...routes: IRoute[][]): IRoute[] {
-    return [].concat.apply([], routes);
+    return ([] as IRoute[]).concat(...routes);
   }
 
   private router: any;
