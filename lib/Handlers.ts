@@ -6,8 +6,8 @@ import { ApiSuccess } from './ApiSuccess';
  * errors that may be thrown by that function. Makes it cleaner than
  * having try / catch blocks throughout the code.
  */
-export const step = (controller: any) => (req: any, res: any, next: any) =>
-  controller(req, res, next)
+export const step = (controller: any) => (req: any, res: any, ...args: any[]) =>
+  controller(req, res, ...args)
     .then((result: ApiSuccess) => {
       if (result instanceof ApiSuccess) {
         result.respond();
@@ -15,5 +15,4 @@ export const step = (controller: any) => (req: any, res: any, next: any) =>
     })
     .catch(handleError(res));
 
-export const steps = (...controllers: any[]) =>
-  controllers.map(controller => step(controller));
+export const steps = (...controllers: any[]) => controllers.map(step);
