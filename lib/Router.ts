@@ -9,13 +9,25 @@ export enum RequestType {
 
 export interface IPreRoute {
   path: string;
-  steps: Array<(req: any, res: any, next: any) => Promise<any>>;
+  steps: Array<
+    (
+      req: express.Request,
+      res: express.Response,
+      next: express.NextFunction
+    ) => Promise<any>
+  >;
 }
 
 export interface IRoute {
   type: RequestType;
   path: string;
-  steps: Array<(req: any, res: any, next: any) => Promise<any>>;
+  steps: Array<
+    (
+      req: express.Request,
+      res: express.Response,
+      next: express.NextFunction
+    ) => Promise<any>
+  >;
 }
 
 export class Router {
@@ -34,7 +46,7 @@ export class Router {
     return ([] as IRoute[]).concat(...routes);
   }
 
-  private router: any;
+  private router: express.Router;
 
   constructor(...routes: IRoute[][]);
   constructor(routes: IRoute[]) {
@@ -62,7 +74,7 @@ export class Router {
     });
   }
 
-  get routes() {
+  get routes(): express.Router {
     return this.router;
   }
 }

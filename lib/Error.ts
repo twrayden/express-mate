@@ -1,9 +1,13 @@
+import * as express from 'express';
+
 import { ApiError } from './ApiError';
 
 /**
  * Last chain of resistance for handling error responses.
  */
-export const handleError = (res: any) => (error: ApiError | Error) => {
+export const handleError = (res: express.Response) => (
+  error: ApiError | Error
+) => {
   if (error instanceof ApiError) {
     error.respond();
   }

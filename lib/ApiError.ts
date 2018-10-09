@@ -1,3 +1,4 @@
+import * as express from 'express';
 import * as HTTPStatus from 'http-status';
 
 export class ApiError {
@@ -5,15 +6,15 @@ export class ApiError {
   protected code: number;
   protected data: any;
 
-  private res: any;
+  private res: express.Response;
 
   /**
    * API Error
    * @constructor
    * @param message
    */
-  constructor(res: any, error: Error);
-  constructor(res: any, message?: string, data?: any);
+  constructor(res: express.Response, error: Error);
+  constructor(res: express.Response, message?: string, data?: any);
   constructor() {
     this.res = arguments[0];
     if (arguments[1] instanceof Error) {
