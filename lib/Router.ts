@@ -42,11 +42,7 @@ export class Router {
   }
 
   public static mergeRoutes(routes: IRoute[][]): IRoute[] {
-    const result: IRoute[] = [];
-    routes.forEach(route => {
-      result.concat(route);
-    });
-    return result;
+    return ([] as IRoute[]).concat(...routes);
   }
 
   private router: express.Router;
