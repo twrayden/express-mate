@@ -34,9 +34,7 @@ export class Router {
   public static createRoutes(type: RequestType, pre: IPreRoute[]): IRoute[] {
     return pre.map(
       (route): IRoute => {
-        return Object.assign(route, {
-          type
-        });
+        return { ...route, type };
       }
     );
   }
@@ -49,14 +47,14 @@ export class Router {
 
   constructor(...routes: IRoute[][]);
   constructor(routes: IRoute[]) {
-    routes =
+    this.router = express.Router();
+
+    const parsed =
       arguments.length === 1
         ? routes
         : Router.mergeRoutes(Array.from(arguments));
 
-    this.router = express.Router();
-
-    routes.forEach((route: IRoute) => {
+    parsed.forEach((route: IRoute) => {
       switch (route.type) {
         case RequestType.GET:
           this.router.get(route.path, steps(route.steps));

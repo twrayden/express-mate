@@ -17,7 +17,7 @@ export const step = (
 ) => (req: express.Request, res: express.Response, ...args: any[]) =>
   controller(req, res, ...args)
     .then((result: ApiSuccess) => {
-      if (result instanceof ApiSuccess) {
+      if (result && result.respond) {
         result.respond();
       }
     })
