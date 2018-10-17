@@ -26,7 +26,7 @@ export class ApiError {
     this.code = HTTPStatus.INTERNAL_SERVER_ERROR;
   }
 
-  public respond(): void {
+  public end(): void {
     this.res.status(this.code).json({
       status: 'error',
       message: this.message,
