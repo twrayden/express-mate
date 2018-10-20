@@ -1,6 +1,6 @@
 # express-mate
 
-:star: Helper library that makes your life a little easier when working with Express REST APIs
+Helper library that makes your life a little easier when working with Express REST APIs
 
 ## Router
 
