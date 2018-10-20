@@ -2,9 +2,9 @@ import * as express from 'express';
 import { steps } from './Handlers';
 
 export enum RequestType {
-  GET,
-  POST,
-  PATCH
+  GET = 'GET',
+  PATCH = 'PATCH',
+  POST = 'POST'
 }
 
 export interface IPreRoute {
