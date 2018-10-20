@@ -36,6 +36,7 @@ export class ApiError {
   }
 
   public print(): void {
+    // TODO: find a good way to handle this
     // logger.error(this.message);
   }
 }
