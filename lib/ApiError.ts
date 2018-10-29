@@ -1,5 +1,6 @@
 import * as express from 'express';
 import * as HTTPStatus from 'http-status';
+import * as winston from 'winston';
 
 export class ApiError {
   protected message: string;
@@ -36,7 +37,6 @@ export class ApiError {
   }
 
   public print(): void {
-    // TODO: find a good way to handle this
-    // logger.error(this.message);
+    winston.error(this.message);
   }
 }

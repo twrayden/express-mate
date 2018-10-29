@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "express": "^4.16.3",
-    "http-status": "^1.2.0"
+    "http-status": "^1.2.0",
+    "winston": "^3.1.0"
   }
 }
