@@ -35,7 +35,7 @@ const POST = Router.createRoutes(RequestType.POST, [
   {
     path: '/',
     steps: [
-      (req, res) => {
+      async (req, res) => {
         res.end('Hello POST!');
       }
     ]
