@@ -1,5 +1,5 @@
 import * as express from 'express';
-import { steps } from './Handlers';
+import { steps, IController } from './Handlers';
 
 export enum RequestType {
   GET = 'GET',
@@ -9,25 +9,13 @@ export enum RequestType {
 
 export interface IPreRoute {
   path: string;
-  steps: Array<
-    (
-      req: express.Request,
-      res: express.Response,
-      next: express.NextFunction
-    ) => Promise<any>
-  >;
+  steps: Array<IController>;
 }
 
 export interface IRoute {
   type: RequestType;
   path: string;
-  steps: Array<
-    (
-      req: express.Request,
-      res: express.Response,
-      next: express.NextFunction
-    ) => Promise<any>
-  >;
+  steps: Array<IController>;
 }
 
 export class Router {
