@@ -10,9 +10,10 @@ export class ApiError {
   private res: express.Response;
 
   /**
-   * API Error
+   * Api Error
    * @constructor
-   * @param message
+   * @param res
+   * @param error
    */
   constructor(res: express.Response, error: Error);
   constructor(res: express.Response, message?: string, data?: any);

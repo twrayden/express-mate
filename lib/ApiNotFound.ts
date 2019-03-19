@@ -5,8 +5,9 @@ import { ApiError } from './ApiError';
 
 export class ApiNotFound extends ApiError {
   /**
-   * API Not Found
+   * Api Not Found
    * @constructor
+   * @param res
    * @param message
    */
   constructor(res: express.Response, message?: string) {

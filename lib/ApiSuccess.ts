@@ -15,9 +15,10 @@ export class ApiSuccess {
   private res: express.Response;
 
   /**
-   * API Error
+   * Api Success
    * @constructor
    * @param message
+   * @param data
    */
   constructor(res: express.Response, data?: any) {
     this.res = res;
