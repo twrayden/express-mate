@@ -10,9 +10,8 @@ export class ApiFail extends ApiError {
    * @param res
    * @param message
    */
-  constructor(res: express.Response, message: string) {
-    super(res);
-    this.message = message;
+  constructor(res: express.Response, message?: string, data?: any) {
+    super(res, message, data);
     this.code = HTTPStatus.BAD_REQUEST;
   }
 }
