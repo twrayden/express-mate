@@ -3,6 +3,17 @@ import * as HTTPStatus from 'http-status';
 import * as winston from 'winston';
 
 export class ApiError {
+  public static respond(
+    res: express.Response,
+    data?: any,
+    code: 500 | 400 | 404 | 401 | 403 = HTTPStatus.INTERNAL_SERVER_ERROR
+  ): void {
+    res.status(code).json({
+      status: 'error',
+      data
+    });
+  }
+
   protected message: string;
   protected code: number;
   protected data: any;
@@ -32,7 +43,6 @@ export class ApiError {
     this.res.status(this.code).json({
       status: 'error',
       message: this.message,
-      code: this.code,
       data: this.data
     });
   }
