@@ -1,24 +1,34 @@
 import * as express from 'express';
 import * as HTTPStatus from 'http-status';
 import * as winston from 'winston';
-
 export class ApiError {
-  public static respond(
-    res: express.Response,
-    data?: any,
-    code: 500 | 400 | 404 | 401 | 403 = HTTPStatus.INTERNAL_SERVER_ERROR
-  ): void {
-    res.status(code).json({
-      status: 'error',
-      data
-    });
+  protected static status: string = 'error';
+  protected static code: number = HTTPStatus.INTERNAL_SERVER_ERROR;
+
+  public static respond(res: express.Response, data?: Error | string): void {
+    if (data instanceof Error) {
+      res.status(this.code).json({
+        status: this.status,
+        message: data.message,
+        data
+      });
+    } else if (typeof data === 'string') {
+      res.status(this.code).json({
+        status: this.status,
+        message: data
+      });
+    } else {
+      res.status(this.code).json({
+        status: this.status,
+        data
+      });
+    }
   }
 
-  protected message: string;
-  protected code: number;
-  protected data: any;
-
   private res: express.Response;
+
+  protected message: string;
+  protected data: any;
 
   /**
    * Api Error
@@ -26,22 +36,24 @@ export class ApiError {
    * @param res
    * @param error
    */
-  constructor(res: express.Response, error: Error);
-  constructor(res: express.Response, message?: string, data?: any);
+  constructor(res: express.Response, error?: Error);
+  constructor(res: express.Response, message?: string);
   constructor() {
     this.res = arguments[0];
     if (arguments[1] instanceof Error) {
       this.message = arguments[1].message;
-    } else {
+      this.data = arguments[1];
+    } else if (typeof arguments[1] === 'string') {
       this.message = arguments[1];
-      this.data = arguments[2];
+    } else {
+      this.data = arguments[1];
+      this.message = 'There was an unknown error on the server.';
     }
-    this.code = HTTPStatus.INTERNAL_SERVER_ERROR;
   }
 
   public end(): void {
-    this.res.status(this.code).json({
-      status: 'error',
+    this.res.status(ApiError.code).json({
+      status: ApiError.status,
       message: this.message,
       data: this.data
     });

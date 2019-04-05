@@ -4,14 +4,12 @@ import * as HTTPStatus from 'http-status';
 import { ApiError } from './ApiError';
 
 export class ApiFail extends ApiError {
+  public static status = 'bad request';
+  public static code = HTTPStatus.BAD_REQUEST;
   /**
    * Api Fail
    * @constructor
    * @param res
    * @param message
    */
-  constructor(res: express.Response, message?: string, data?: any) {
-    super(res, message, data);
-    this.code = HTTPStatus.BAD_REQUEST;
-  }
 }

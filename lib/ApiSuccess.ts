@@ -9,10 +9,10 @@ export class ApiSuccess {
     });
   }
 
-  protected code: number;
-  protected data: any;
-
   private res: express.Response;
+
+  protected code: number = HTTPStatus.OK;
+  protected data: any;
 
   /**
    * Api Success
@@ -22,7 +22,6 @@ export class ApiSuccess {
    */
   constructor(res: express.Response, data?: any) {
     this.res = res;
-    this.code = HTTPStatus.OK;
     this.data = data;
   }
 
