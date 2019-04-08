@@ -2,6 +2,7 @@ import * as express from 'express';
 import * as HTTPStatus from 'http-status';
 import * as winston from 'winston';
 export class ApiError {
+  'constructor': typeof ApiError;
   protected static status: string = 'error';
   protected static code: number = HTTPStatus.INTERNAL_SERVER_ERROR;
 
@@ -52,8 +53,8 @@ export class ApiError {
   }
 
   public end(): void {
-    this.res.status(ApiError.code).json({
-      status: ApiError.status,
+    this.res.status(this.constructor.code).json({
+      status: this.constructor.status,
       message: this.message,
       data: this.data
     });
