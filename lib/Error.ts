@@ -14,5 +14,7 @@ export const handleError = (res: express.Response) => (
     err.print();
   } else if (error && error.end) {
     error.end();
+  } else {
+    res.sendStatus(500);
   }
 };

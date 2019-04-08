@@ -23,6 +23,8 @@ export const step = (controller: IController) => (
     .then((result: ApiSuccess) => {
       if (result && result.end) {
         result.end();
+      } else {
+        res.sendStatus(200);
       }
     })
     .catch(handleError(res));
