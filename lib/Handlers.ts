@@ -1,30 +1,28 @@
 import * as express from 'express';
 
-import { handleError } from './Error';
 import { ApiSuccess } from './ApiSuccess';
+import { ApiError } from './ApiError';
 
 export type IController = (
-  req: express.Request,
-  res: express.Response,
+  req?: express.Request,
+  res?: express.Response,
   next?: express.NextFunction
 ) => Promise<any> | any;
 
 /**
- * This function is used to wrap async / await functions and handle any
- * errors that may be thrown by that function. Makes it cleaner than
- * having try / catch blocks throughout the code.
+ * Custom handler resolver to support promises
  */
 export const step = (controller: IController) => (
   req: express.Request,
   res: express.Response,
-  ...args: any[]
+  next: express.NextFunction
 ) =>
-  Promise.resolve(controller(req, res, ...args))
-    .then((result: ApiSuccess) => {
-      if (result && result.end) {
+  Promise.resolve(controller(req, res, next))
+    .then((result: ApiSuccess | ApiError) => {
+      if (!res.headersSent && result && typeof result.end === 'function') {
         result.end();
       }
     })
-    .catch(handleError(res));
+    .catch(next);
 
 export const steps = (controllers: Array<IController>) => controllers.map(step);
