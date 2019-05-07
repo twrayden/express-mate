@@ -2,6 +2,7 @@ import * as express from 'express';
 
 import { ApiSuccess } from './ApiSuccess';
 import { ApiError } from './ApiError';
+import { handleError } from './Error';
 
 export type IController = (
   req?: express.Request,
@@ -23,6 +24,6 @@ export const step = (controller: IController) => (
         result.end();
       }
     })
-    .catch(next);
+    .catch(handleError(req, res, next));
 
 export const steps = (controllers: Array<IController>) => controllers.map(step);
