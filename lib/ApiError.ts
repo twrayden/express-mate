@@ -53,8 +53,10 @@ export class ApiError {
   }
 
   public end(): void {
-    this.res.status(this.constructor.code).json({
-      status: this.constructor.status,
+    const code = this.constructor.code;
+    const status = this.constructor.status;
+    this.res.status(code).json({
+      status,
       message: this.message,
       data: this.data
     });
