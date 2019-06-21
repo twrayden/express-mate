@@ -5,9 +5,9 @@ import { ApiError } from './ApiError';
 import { handleError } from './Error';
 
 export type IController = (
-  req?: express.Request,
-  res?: express.Response,
-  next?: express.NextFunction
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
 ) => Promise<any> | any;
 
 /**
