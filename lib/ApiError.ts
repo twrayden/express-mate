@@ -28,8 +28,9 @@ export class ApiError {
 
   private res: express.Response;
 
-  protected message: string;
+  protected message: string | undefined = undefined;
   protected data: any;
+  protected sterilized: { message?: string; data?: any };
 
   /**
    * Api Error
@@ -39,17 +40,34 @@ export class ApiError {
    */
   constructor(res: express.Response, error?: Error);
   constructor(res: express.Response, message?: string);
-  constructor() {
-    this.res = arguments[0];
-    if (arguments[1] instanceof Error) {
-      this.message = arguments[1].message;
-      this.data = arguments[1];
-    } else if (typeof arguments[1] === 'string') {
-      this.message = arguments[1];
-    } else {
-      this.data = arguments[1];
-      this.message = 'There was an unknown error on the server.';
+  constructor(res: express.Response) {
+    this.res = res;
+    this.sterilized = { message: this.message, data: this.data };
+    this.sterilizeArg(arguments[1]);
+    this.init({ message: 'There was an unknown error on the server.' });
+  }
+
+  protected sterilizeArg(arg: Error | string | undefined | null) {
+    if (arg instanceof Error) {
+      this.sterilized = {
+        ...this.sterilized,
+        data: arguments[1],
+        message: arguments[1].message
+      };
+    } else if (typeof arg === 'string') {
+      this.sterilized = { ...this.sterilized, message: arg };
+    } else if (arg) {
+      this.sterilized = {
+        ...this.sterilized,
+        data: arg
+      };
     }
+  }
+
+  protected init(defaults: { data?: any; message?: string }) {
+    const { data, message } = this.sterilized;
+    this.data = data ? data : defaults.data;
+    this.message = message ? message : defaults.message;
   }
 
   public end(): void {
@@ -63,6 +81,8 @@ export class ApiError {
   }
 
   public print(): void {
-    winston.error(this.message);
+    if (this.message) {
+      winston.error(this.message);
+    }
   }
 }
