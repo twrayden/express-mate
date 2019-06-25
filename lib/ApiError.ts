@@ -38,8 +38,8 @@ export class ApiError {
    * @param res
    * @param error
    */
-  constructor(res: express.Response, error?: Error);
-  constructor(res: express.Response, message?: string);
+  constructor(res: express.Response, error: Error);
+  constructor(res: express.Response, message: string);
   constructor(res: express.Response) {
     this.res = res;
     this.sterilized = { message: this.message, data: this.data };
@@ -51,8 +51,8 @@ export class ApiError {
     if (arg instanceof Error) {
       this.sterilized = {
         ...this.sterilized,
-        data: arguments[1],
-        message: arguments[1].message
+        data: arg,
+        message: arg.message
       };
     } else if (typeof arg === 'string') {
       this.sterilized = { ...this.sterilized, message: arg };
