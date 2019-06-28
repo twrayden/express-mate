@@ -5,11 +5,9 @@ import { ApiError } from './ApiError';
 /**
  * Last chain of resistance for handling error responses.
  */
-export const handleError = (
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) => (error: ApiError | Error) => {
+export const handleError: express.RequestHandler = (req, res, next) => (
+  error: ApiError | Error
+) => {
   if (!res.headersSent) {
     if (error instanceof Error) {
       const e = new ApiError(res, error);

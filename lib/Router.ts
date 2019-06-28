@@ -1,5 +1,5 @@
 import * as express from 'express';
-import { steps, IController } from './Handlers';
+import { steps } from './Handlers';
 
 export enum RequestType {
   GET = 'GET',
@@ -9,13 +9,13 @@ export enum RequestType {
 
 export interface IPreRoute {
   path: string;
-  steps: Array<IController>;
+  steps: Array<express.RequestHandler>;
 }
 
 export interface IRoute {
   type: RequestType;
   path: string;
-  steps: Array<IController>;
+  steps: Array<express.RequestHandler>;
 }
 
 export class Router {
