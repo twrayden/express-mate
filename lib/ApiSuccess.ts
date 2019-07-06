@@ -26,9 +26,11 @@ export class ApiSuccess {
   }
 
   public end(): void {
-    this.res.status(this.code).json({
-      status: 'success',
-      data: this.data
-    });
+    if (!this.res.headersSent) {
+      this.res.status(this.code).json({
+        status: 'success',
+        data: this.data
+      });
+    }
   }
 }

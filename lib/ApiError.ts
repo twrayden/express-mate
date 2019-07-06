@@ -71,13 +71,15 @@ export class ApiError {
   }
 
   public end(): void {
-    const code = this.constructor.code;
-    const status = this.constructor.status;
-    this.res.status(code).json({
-      status,
-      message: this.message,
-      data: this.data
-    });
+    if (!this.res.headersSent) {
+      const code = this.constructor.code;
+      const status = this.constructor.status;
+      this.res.status(code).json({
+        status,
+        message: this.message,
+        data: this.data
+      });
+    }
   }
 
   public print(): void {

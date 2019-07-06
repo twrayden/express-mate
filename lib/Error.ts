@@ -1,6 +1,11 @@
 import * as express from 'express';
 
 import { ApiError } from './ApiError';
+import { isApiObject } from './Handlers';
+
+export function isError(e: ApiError | Error): e is Error {
+  return e && e.stack && typeof e.stack === 'string';
+}
 
 /**
  * Last chain of resistance for handling error responses.
@@ -8,14 +13,14 @@ import { ApiError } from './ApiError';
 export const handleError: express.RequestHandler = (req, res, next) => (
   error: ApiError | Error
 ) => {
-  if (!res.headersSent) {
-    if (error instanceof Error) {
-      const e = new ApiError(res, error);
-      e.print();
-      e.end();
-    } else if (error && typeof error.end === 'function') {
-      error.end();
-    }
+  if (isApiObject(error)) {
+    error.end();
+  } else if (isError(error) || typeof error === 'string') {
+    const e = new ApiError(res, error);
+    e.print();
+    e.end();
+    next(error);
+  } else {
+    next(error);
   }
-  next(error);
 };

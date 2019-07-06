@@ -4,6 +4,12 @@ import { ApiSuccess } from './ApiSuccess';
 import { ApiError } from './ApiError';
 import { handleError } from './Error';
 
+export function isApiObject(
+  e: ApiSuccess | ApiError | Error
+): e is ApiSuccess | ApiError {
+  return e && e.end && typeof e.end === 'function';
+}
+
 /**
  * Custom handler resolver to support promises
  */
@@ -12,7 +18,7 @@ export const step = (
 ): express.RequestHandler => (req, res, next) =>
   Promise.resolve(handler(req, res, next))
     .then((result: ApiSuccess | ApiError) => {
-      if (!res.headersSent && result && typeof result.end === 'function') {
+      if (isApiObject(result)) {
         result.end();
       }
     })
