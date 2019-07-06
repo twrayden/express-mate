@@ -2,6 +2,7 @@ import * as express from 'express';
 import * as HTTPStatus from 'http-status';
 import * as winston from 'winston';
 export class ApiError {
+  // @ts-ignore
   'constructor': typeof ApiError;
   protected static status: string = 'error';
   protected static code: number = HTTPStatus.INTERNAL_SERVER_ERROR;
