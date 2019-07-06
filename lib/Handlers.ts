@@ -7,7 +7,7 @@ import { handleError } from './Error';
 export function isApiObject(
   e: ApiSuccess | ApiError | Error
 ): e is ApiSuccess | ApiError {
-  return e && e.end && typeof e.end === 'function';
+  return e && typeof (e as ApiSuccess | ApiError).end === 'function';
 }
 
 /**

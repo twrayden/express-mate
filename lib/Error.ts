@@ -4,7 +4,7 @@ import { ApiError } from './ApiError';
 import { isApiObject } from './Handlers';
 
 export function isError(e: ApiError | Error): e is Error {
-  return e && e.stack && typeof e.stack === 'string';
+  return e && typeof (e as Error).stack === 'string';
 }
 
 /**
