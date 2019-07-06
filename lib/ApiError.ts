@@ -29,7 +29,7 @@ export class ApiError {
   private res: express.Response;
 
   protected message: string | undefined = undefined;
-  protected data: any;
+  protected data: any = undefined;
   protected sterilized: { message?: string; data?: any };
 
   /**
@@ -38,8 +38,8 @@ export class ApiError {
    * @param res
    * @param error
    */
-  constructor(res: express.Response, error: Error);
-  constructor(res: express.Response, message: string);
+  constructor(res: express.Response, error?: Error);
+  constructor(res: express.Response, message?: string);
   constructor(res: express.Response) {
     this.res = res;
     this.sterilized = { message: this.message, data: this.data };
