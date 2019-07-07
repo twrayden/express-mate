@@ -1,5 +1,4 @@
 import { ApiUnauthorized } from '../lib/ApiUnauthorized';
-import { handleError } from '../lib/Error';
 import { Request, Response, NextFunction } from 'express';
 
 const mockError = (): Error => {
@@ -24,13 +23,6 @@ const mockNext = (): NextFunction => {
 function throwError() {
   throw mockError();
 }
-
-test('Handle thrown error', () => {
-  const req = mockRequest();
-  const res = mockResponse();
-  const next = mockNext();
-  handleError(req, res, next)(mockError());
-});
 
 test('Unauthorized w/ message', () => {
   const res = mockResponse();
