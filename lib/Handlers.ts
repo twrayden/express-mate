@@ -2,12 +2,15 @@ import * as express from 'express';
 
 import { ApiSuccess } from './ApiSuccess';
 import { ApiError } from './ApiError';
-import { handleError } from './Error';
 
 export function isApiObject(
   e: ApiSuccess | ApiError | Error
 ): e is ApiSuccess | ApiError {
   return e && typeof (e as ApiSuccess | ApiError).end === 'function';
+}
+
+export function isApiError(e: ApiSuccess | ApiError): e is ApiError {
+  return e && typeof (e as ApiError).print === 'function';
 }
 
 /**
@@ -19,10 +22,14 @@ export const step = (
   Promise.resolve(handler(req, res, next))
     .then((result: ApiSuccess | ApiError) => {
       if (isApiObject(result)) {
-        result.end();
+        if (isApiError(result)) {
+          next(result);
+        } else {
+          result.end();
+        }
       }
     })
-    .catch(handleError(req, res, next));
+    .catch(next);
 
 export const steps = (handlers: Array<express.RequestHandler>) =>
   handlers.map(step);
