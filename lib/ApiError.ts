@@ -85,7 +85,7 @@ export class ApiError {
 
   public print(): void {
     if (this.message) {
-      winston.error(this.message);
+      winston.error(JSON.stringify(this.message));
     }
   }
 }
