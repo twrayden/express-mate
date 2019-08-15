@@ -15,11 +15,20 @@ export function errorHandler(
   options: ErrorHandlerOptions = {}
 ): express.ErrorRequestHandler {
   return (err, req, res, next) => {
-    if (isApiObject(err) && isApiError(err)) {
-      if (options.print) {
-        err.print();
-      }
-      err.end();
+    if (res.headersSent) {
+      return next(err);
     }
+    let e = err;
+    if (!isApiObject(e)) {
+      if (isError(e)) {
+        e = new ApiError(res, e);
+      } else {
+        e = new ApiError(res, String(e));
+      }
+    }
+    if (options.print && isApiError(e)) {
+      e.print();
+    }
+    e.end();
   };
 }

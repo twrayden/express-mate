@@ -23,7 +23,7 @@ export const step = (
     .then((result: ApiSuccess | ApiError) => {
       if (isApiObject(result)) {
         if (isApiError(result)) {
-          next(result);
+          return next(result);
         } else {
           result.end();
         }
