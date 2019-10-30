@@ -2,8 +2,6 @@ import express from 'express';
 import HTTPStatus from 'http-status';
 import { types } from 'util';
 export class ApiError {
-  // @ts-ignore
-  'constructor': typeof ApiError;
   protected static status: string = 'error';
   protected static code: number = HTTPStatus.INTERNAL_SERVER_ERROR;
 
@@ -73,8 +71,8 @@ export class ApiError {
 
   public end(): void {
     if (!this.res.headersSent) {
-      const code = this.constructor.code;
-      const status = this.constructor.status;
+      const code = (this.constructor as any).code;
+      const status = (this.constructor as any).status;
       this.res.status(code).json({
         status,
         message: this.message,
