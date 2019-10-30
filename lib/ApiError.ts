@@ -14,8 +14,7 @@ export class ApiError {
       return {
         ...defaults,
         status: this.status,
-        message: arg.message,
-        data: arg.stack
+        message: arg.message
       };
     } else if (typeof arg === 'string') {
       return { ...defaults, status: this.status, message: arg };

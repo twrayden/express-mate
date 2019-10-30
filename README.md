@@ -24,8 +24,7 @@ Standard error response.
 ```json
 {
   "status": "error",
-  "message": "You left the oven on!",
-  "data": "[Error: You left the oven on!]"
+  "message": "You left the oven on!"
 }
 ```
 
