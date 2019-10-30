@@ -1,6 +1,6 @@
-import * as express from 'express';
-import * as HTTPStatus from 'http-status';
-import * as winston from 'winston';
+import express from 'express';
+import HTTPStatus from 'http-status';
+import { types } from 'util';
 export class ApiError {
   // @ts-ignore
   'constructor': typeof ApiError;
@@ -49,7 +49,7 @@ export class ApiError {
   }
 
   protected sterilizeArg(arg: Error | string | undefined | null) {
-    if (arg instanceof Error) {
+    if (types.isNativeError(arg)) {
       this.sterilized = {
         ...this.sterilized,
         data: arg,
@@ -83,9 +83,9 @@ export class ApiError {
     }
   }
 
-  public print(): void {
-    if (this.message) {
-      winston.error(JSON.stringify(this.message));
-    }
+  // Used to determine if ApiError obj
+  // TODO: find a purpose for this, logging maybe
+  public get stack() {
+    return '';
   }
 }

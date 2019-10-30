@@ -1,10 +1,14 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "outDir": "dist",
     "module": "commonjs",
     "target": "es5",
     "lib": ["es5", "es6"],
     "declaration": true,
-    "strict": true
-  }
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node"
+  },
+  "include": ["lib"],
+  "exclude": ["node_modules", "dist"]
 }

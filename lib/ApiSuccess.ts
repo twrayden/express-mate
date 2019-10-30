@@ -1,5 +1,5 @@
-import * as express from 'express';
-import * as HTTPStatus from 'http-status';
+import express from 'express';
+import HTTPStatus from 'http-status';
 
 export class ApiSuccess {
   public static respond(res: express.Response, data?: any): void {

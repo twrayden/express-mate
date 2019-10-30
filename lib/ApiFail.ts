@@ -1,4 +1,4 @@
-import * as HTTPStatus from 'http-status';
+import HTTPStatus from 'http-status';
 
 import { ApiError } from './ApiError';
 
