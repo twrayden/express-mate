@@ -1,35 +1,42 @@
 import express from 'express';
 import HTTPStatus from 'http-status';
 import { types } from 'util';
+
 export class ApiError {
   protected static status: string = 'error';
   protected static code: number = HTTPStatus.INTERNAL_SERVER_ERROR;
 
-  public static respond(res: express.Response, data?: Error | string): void {
-    if (data instanceof Error) {
-      res.status(this.code).json({
+  private static sterilizeArg(
+    arg: Error | string | undefined | null,
+    defaults: any = {}
+  ) {
+    if (types.isNativeError(arg)) {
+      return {
+        ...defaults,
         status: this.status,
-        message: data.message,
-        data
-      });
-    } else if (typeof data === 'string') {
-      res.status(this.code).json({
+        message: arg.message,
+        data: arg.stack
+      };
+    } else if (typeof arg === 'string') {
+      return { ...defaults, status: this.status, message: arg };
+    } else if (arg) {
+      return {
+        ...defaults,
         status: this.status,
-        message: data
-      });
-    } else {
-      res.status(this.code).json({
-        status: this.status,
-        data
-      });
+        data: arg
+      };
     }
+  }
+
+  public static respond(res: express.Response, data?: Error | string): void {
+    res.status(this.code).json(this.sterilizeArg(data));
   }
 
   private res: express.Response;
 
   protected message: string | undefined = undefined;
   protected data: any = undefined;
-  protected sterilized: { message?: string; data?: any };
+  protected sterilized: { message?: string; data?: any; status?: string };
 
   /**
    * Api Error
@@ -41,26 +48,11 @@ export class ApiError {
   constructor(res: express.Response, message?: string);
   constructor(res: express.Response) {
     this.res = res;
-    this.sterilized = { message: this.message, data: this.data };
-    this.sterilizeArg(arguments[1]);
+    this.sterilized = ApiError.sterilizeArg(arguments[1], {
+      message: this.message,
+      data: this.data
+    });
     this.init({ message: 'There was an unknown error on the server.' });
-  }
-
-  protected sterilizeArg(arg: Error | string | undefined | null) {
-    if (types.isNativeError(arg)) {
-      this.sterilized = {
-        ...this.sterilized,
-        data: arg,
-        message: arg.message
-      };
-    } else if (typeof arg === 'string') {
-      this.sterilized = { ...this.sterilized, message: arg };
-    } else if (arg) {
-      this.sterilized = {
-        ...this.sterilized,
-        data: arg
-      };
-    }
   }
 
   protected init(defaults: { data?: any; message?: string }) {
