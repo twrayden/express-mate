@@ -1,80 +1,56 @@
-import express from 'express';
+import { Response } from 'express';
 import HTTPStatus from 'http-status';
 import { types } from 'util';
 
-export class ApiError {
-  protected static status: string = 'error';
-  protected static code: number = HTTPStatus.INTERNAL_SERVER_ERROR;
+import { ApiObject } from './ApiObject';
 
-  private static sterilizeArg(
-    arg: Error | string | undefined | null,
-    defaults: any = {}
-  ) {
-    if (types.isNativeError(arg)) {
-      return {
-        ...defaults,
-        status: this.status,
-        message: arg.message
-      };
-    } else if (typeof arg === 'string') {
-      return { ...defaults, status: this.status, message: arg };
-    } else if (arg) {
-      return {
-        ...defaults,
-        status: this.status,
-        data: arg
-      };
+export function isApiError(e: ApiObject): e is ApiError {
+  return e && (e as ApiError).hasOwnProperty('stack');
+}
+
+export class ApiError extends ApiObject {
+  protected static _status: string = 'error';
+  protected static _code: number = HTTPStatus.INTERNAL_SERVER_ERROR;
+
+  public static respond(res: Response, error?: Error): void;
+  public static respond(res: Response, message?: string): void;
+  public static respond(res: Response, data?: any): void {
+    const instance = new ApiError(res, data);
+    instance.respond();
+  }
+
+  private error: Error;
+
+  constructor(res: Response, error?: Error);
+  constructor(res: Response, message?: string);
+  constructor(res: Response, data?: any) {
+    super(res);
+    this.error = this.toError(data);
+  }
+
+  private toError(data?: any): Error {
+    if (data) {
+      if (types.isNativeError(data)) {
+        return data;
+      } else if (typeof data === 'string') {
+        return new Error(data);
+      }
     }
+    return new Error('Unknown error occurred.');
   }
 
-  public static respond(res: express.Response, data?: Error | string): void {
-    res.status(this.code).json(this.sterilizeArg(data));
-  }
-
-  private res: express.Response;
-
-  protected message: string | undefined = undefined;
-  protected data: any = undefined;
-  protected sterilized: { message?: string; data?: any; status?: string };
-
-  /**
-   * Api Error
-   * @constructor
-   * @param res
-   * @param error
-   */
-  constructor(res: express.Response, error?: Error);
-  constructor(res: express.Response, message?: string);
-  constructor(res: express.Response) {
-    this.res = res;
-    this.sterilized = ApiError.sterilizeArg(arguments[1], {
-      message: this.message,
-      data: this.data
-    });
-    this.init({ message: 'There was an unknown error on the server.' });
-  }
-
-  protected init(defaults: { data?: any; message?: string }) {
-    const { data, message } = this.sterilized;
-    this.data = data ? data : defaults.data;
-    this.message = message ? message : defaults.message;
-  }
-
-  public end(): void {
-    if (!this.res.headersSent) {
-      const code = (this.constructor as any).code;
-      const status = (this.constructor as any).status;
-      this.res.status(code).json({
-        status,
-        message: this.message,
-        data: this.data
-      });
-    }
-  }
-
-  // Used to determine if ApiError obj
-  // TODO: find a purpose for this, logging maybe
   public get stack() {
-    return '';
+    return this.error.stack;
+  }
+
+  public get message() {
+    return this.error.message;
+  }
+
+  public respond() {
+    this.res.status(ApiError.code).json({
+      status: ApiError.status,
+      message: this.error.message
+    });
   }
 }

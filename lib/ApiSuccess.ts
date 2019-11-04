@@ -1,36 +1,28 @@
-import express from 'express';
+import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-export class ApiSuccess {
-  public static respond(res: express.Response, data?: any): void {
-    res.status(HTTPStatus.OK).json({
-      status: 'success',
-      data
-    });
+import { ApiObject } from './ApiObject';
+
+export class ApiSuccess extends ApiObject {
+  protected static _status: string = 'success';
+  protected static _code: number = HTTPStatus.OK;
+
+  public static respond(res: Response, data?: any) {
+    const instance = new ApiSuccess(res, data);
+    instance.respond();
   }
 
-  private res: express.Response;
+  private data: any;
 
-  protected code: number = HTTPStatus.OK;
-  protected data: any;
-
-  /**
-   * Api Success
-   * @constructor
-   * @param message
-   * @param data
-   */
-  constructor(res: express.Response, data?: any) {
-    this.res = res;
+  constructor(res: Response, data?: any) {
+    super(res);
     this.data = data;
   }
 
-  public end(): void {
-    if (!this.res.headersSent) {
-      this.res.status(this.code).json({
-        status: 'success',
-        data: this.data
-      });
-    }
+  public respond() {
+    this.res.status(ApiSuccess.code).json({
+      status: ApiSuccess.status,
+      data: this.data
+    });
   }
 }
