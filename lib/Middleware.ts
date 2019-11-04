@@ -29,8 +29,10 @@ export function createHandler(action: RequestHandler): RequestHandler {
   return (req, res, next) => {
     Promise.resolve(action(req, res, next))
       .then(response => {
-        if (isApiObject(response)) {
-          return response.respond();
+        if (!res.headersSent) {
+          if (isApiObject(response)) {
+            return response.respond();
+          }
         }
       })
       .catch(next);
