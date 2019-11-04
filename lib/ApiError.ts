@@ -1,8 +1,18 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
-import { types } from 'util';
 
 import { ApiObject } from './ApiObject';
+
+export function isError(e: any): e is Error {
+  return (
+    e instanceof Error ||
+    (e &&
+      e.stack &&
+      e.message &&
+      typeof e.stack === 'string' &&
+      typeof e.message === 'string')
+  );
+}
 
 export function isApiError(e: ApiObject): e is ApiError {
   return e && (e as ApiError).hasOwnProperty('stack');
@@ -30,7 +40,7 @@ export class ApiError extends ApiObject {
 
   private toError(data?: any): Error {
     if (data) {
-      if (types.isNativeError(data)) {
+      if (isError(data)) {
         return data;
       } else if (typeof data === 'string') {
         return new Error(data);
