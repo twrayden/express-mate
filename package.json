@@ -1,6 +1,6 @@
 {
   "name": "express-mate",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Helper library that makes your life a little easier when working with express",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
