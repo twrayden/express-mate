@@ -16,11 +16,11 @@ export function errorHandler(
       return next(err);
     }
     if (isApiObject(err)) {
-      err.respond();
+      return err.respond();
     } else {
       const e = new ApiError(res, err);
       log('%O', e.message);
-      e.respond();
+      return e.respond();
     }
   };
 }
