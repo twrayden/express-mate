@@ -44,5 +44,8 @@
     "api",
     "response",
     "error"
-  ]
+  ],
+  "prettier": {
+    "singleQuote": true
+  }
 }
