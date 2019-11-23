@@ -74,10 +74,10 @@ router.use('/', helloWorld);
 The `checkReq` function checks the express request handlers `req` object for variables that may have been added to it and want to be accessed safely.
 
 ```typescript
-import { createHandler, checkReq } = 'express-mate';
+import { createHandler, checkReq } from 'express-mate';
 
 export const helloWorld = createHandler((req, res) => {
-	const hello = checkReq('hello', req);
+  const hello = checkReq('hello', req);
   // If hello exists: hello = req.hello
   // Else if hello not found: throw Error('Expected req.hello');
 });
