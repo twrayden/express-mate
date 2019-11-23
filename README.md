@@ -118,7 +118,7 @@ import { ApiError } from 'express-mate';
 
 router.post('/hello-world', (req, res, next) => {
   try {
-    return new ApiError(res, 'Hello World!');
+    throw new ApiError(res, 'Hello World!');
   } catch (err) {
     return next(err);
   }
