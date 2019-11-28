@@ -1,26 +1,29 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { ApiObject } from './ApiObject';
+import { Responder } from './Responder';
 
-export function isError(e: any): e is Error {
-  return (
-    e instanceof Error ||
-    (e &&
-      e.stack &&
-      e.message &&
-      typeof e.stack === 'string' &&
-      typeof e.message === 'string')
-  );
+export function lazyError(e: any): e is Error {
+  return e && typeof e.stack === 'string' && typeof e.message === 'string';
 }
 
-export function isApiError(e: ApiObject): e is ApiError {
-  return e && (e as ApiError).hasOwnProperty('stack');
+export function isApiError(e: any): e is ApiError {
+  return lazyError(e) && typeof (e as ApiError).respond === 'function';
 }
 
-export class ApiError extends ApiObject {
-  protected static _status: string = 'error';
-  protected static _code: number = HTTPStatus.INTERNAL_SERVER_ERROR;
+export class ApiError extends Error implements Responder {
+  public static status: string = 'error';
+  public static code: number = HTTPStatus.INTERNAL_SERVER_ERROR;
+
+  private static getMessage(data?: any) {
+    if (lazyError(data)) {
+      return data.message;
+    } else if (typeof data === 'string') {
+      return data;
+    } else {
+      return 'Unexpected error occurred';
+    }
+  }
 
   public static respond(res: Response, error?: Error): void;
   public static respond(res: Response, message?: string): void;
@@ -29,38 +32,24 @@ export class ApiError extends ApiObject {
     instance.respond();
   }
 
-  private error: Error;
+  public res: Response;
 
   constructor(res: Response, error?: Error);
   constructor(res: Response, message?: string);
   constructor(res: Response, data?: any) {
-    super(res);
-    this.error = this.toError(data);
-  }
-
-  private toError(data?: any): Error {
-    if (data) {
-      if (isError(data)) {
-        return data;
-      } else if (typeof data === 'string') {
-        return new Error(data);
-      }
+    super(ApiError.getMessage(data));
+    Object.setPrototypeOf(this, ApiError.prototype);
+    if (lazyError(data)) {
+      this.stack = data.stack;
+      this.name = data.name;
     }
-    return new Error('Unknown error occurred.');
-  }
-
-  public get stack() {
-    return this.error.stack;
-  }
-
-  public get message() {
-    return this.error.message;
+    this.res = res;
   }
 
   public respond() {
     this.res.status(ApiError.code).json({
       status: ApiError.status,
-      message: this.error.message
+      message: this.message
     });
   }
 }

@@ -1,11 +1,11 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { ApiObject } from './ApiObject';
+import { Responder } from './Responder';
 
-export class ApiForbidden extends ApiObject {
-  protected static _status: string = 'error';
-  protected static _code: number = HTTPStatus.FORBIDDEN;
+export class ApiForbidden implements Responder {
+  public static status: string = 'error';
+  public static code: number = HTTPStatus.FORBIDDEN;
 
   public static respond(res: Response, message?: string) {
     const instance = new ApiForbidden(res, message);
@@ -14,9 +14,11 @@ export class ApiForbidden extends ApiObject {
 
   private message: string;
 
-  constructor(res: Response, message: string = 'Insufficient permissions.') {
-    super(res);
+  public res: Response;
+
+  constructor(res: Response, message: string = 'Insufficient permissions') {
     this.message = message;
+    this.res = res;
   }
 
   public respond() {

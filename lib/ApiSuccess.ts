@@ -1,11 +1,11 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { ApiObject } from './ApiObject';
+import { Responder } from './Responder';
 
-export class ApiSuccess extends ApiObject {
-  protected static _status: string = 'success';
-  protected static _code: number = HTTPStatus.OK;
+export class ApiSuccess implements Responder {
+  public static status: string = 'success';
+  public static code: number = HTTPStatus.OK;
 
   public static respond(res: Response, data?: any) {
     const instance = new ApiSuccess(res, data);
@@ -14,9 +14,11 @@ export class ApiSuccess extends ApiObject {
 
   private data: any;
 
+  public res: Response;
+
   constructor(res: Response, data?: any) {
-    super(res);
     this.data = data;
+    this.res = res;
   }
 
   public respond() {

@@ -1,11 +1,11 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { ApiObject } from './ApiObject';
+import { Responder } from './Responder';
 
-export class ApiUnauthorized extends ApiObject {
-  protected static _status: string = 'error';
-  protected static _code: number = HTTPStatus.UNAUTHORIZED;
+export class ApiUnauthorized implements Responder {
+  public static status: string = 'error';
+  public static code: number = HTTPStatus.UNAUTHORIZED;
 
   public static respond(res: Response, message?: string) {
     const instance = new ApiUnauthorized(res, message);
@@ -14,9 +14,11 @@ export class ApiUnauthorized extends ApiObject {
 
   private message: string;
 
-  constructor(res: Response, message: string = 'Unauthorized.') {
-    super(res);
+  public res: Response;
+
+  constructor(res: Response, message: string = 'Unauthorized') {
     this.message = message;
+    this.res = res;
   }
 
   public respond() {

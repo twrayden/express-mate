@@ -1,15 +1,15 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { ApiObject } from './ApiObject';
+import { Responder } from './Responder';
 
 export interface IFailData {
   [key: string]: string;
 }
 
-export class ApiFail extends ApiObject {
-  protected static _status: string = 'fail';
-  protected static _code: number = HTTPStatus.BAD_REQUEST;
+export class ApiFail implements Responder {
+  public static status: string = 'fail';
+  public static code: number = HTTPStatus.BAD_REQUEST;
 
   public static respond(res: Response, data?: IFailData) {
     const instance = new ApiFail(res, data);
@@ -18,9 +18,11 @@ export class ApiFail extends ApiObject {
 
   private data: IFailData;
 
+  public res: Response;
+
   constructor(res: Response, data: IFailData = {}) {
-    super(res);
     this.data = data;
+    this.res = res;
   }
 
   public respond() {

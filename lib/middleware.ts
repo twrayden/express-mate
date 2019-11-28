@@ -1,40 +1,86 @@
-import { ErrorRequestHandler, RequestHandler } from 'express';
+import { Router, RequestHandler, ErrorRequestHandler } from 'express';
 import debug from 'debug';
 
-const log = debug('express-mate:error');
+const log = debug('express-mate:middleware');
 
-import { ApiError } from './ApiError';
-import { isApiObject } from './ApiObject';
+import { ApiError, isApiError, lazyError } from './ApiError';
+import { isResponder } from './Responder';
 
-export interface ErrorHandlerOptions {}
+export interface ErrorHandlerOptions {
+  wrapErrors?: boolean;
+  strict?: boolean;
+}
 
 export function errorHandler(
-  options: ErrorHandlerOptions = {}
+  opt: ErrorHandlerOptions = {}
 ): ErrorRequestHandler {
   return (err, req, res, next) => {
-    if (res.headersSent) {
-      return next(err);
+    const { wrapErrors = true, strict = true } = opt;
+    if (!res.headersSent) {
+      if (isApiError(err)) {
+        log('Caught ApiError: %s', err.stack);
+        return err.respond();
+      } else if (isResponder(err) && strict === false) {
+        log('Caught responder: %s', err.constructor.name);
+        return err.respond();
+      } else if (wrapErrors) {
+        const error = new ApiError(res, err);
+        log('Caught native error: %s', error.stack);
+        return error.respond();
+      }
     }
-    if (isApiObject(err)) {
-      return err.respond();
-    } else {
-      const e = new ApiError(res, err);
-      log('%O', e.message);
-      return e.respond();
-    }
+    return next(err);
   };
 }
 
-export function createHandler(action: RequestHandler): RequestHandler {
+export interface HandlerOptions {
+  throwAllErrors?: boolean;
+}
+
+export function createHandler(
+  action: RequestHandler,
+  opt: HandlerOptions = {}
+): RequestHandler {
+  const { throwAllErrors = false } = opt;
   return (req, res, next) => {
     Promise.resolve(action(req, res, next))
-      .then(response => {
+      .then(result => {
+        if (lazyError(result)) {
+          if (throwAllErrors === true) {
+            return Promise.reject(result);
+          } else if (!isApiError(result)) {
+            return Promise.reject(result);
+          }
+        }
         if (!res.headersSent) {
-          if (isApiObject(response)) {
-            return response.respond();
+          if (isResponder(result)) {
+            log('Responded with responder: %s', result.constructor.name);
+            return result.respond();
           }
         }
       })
       .catch(next);
+  };
+}
+
+export type HookCallback = (router: Router, root: Router) => any;
+export type HookFunction = (root: Router) => any;
+
+export function createHook(cb: HookCallback): HookFunction;
+export function createHook(path: string, cb: HookCallback): HookFunction;
+export function createHook(
+  pathOrCb: string | HookCallback,
+  cb?: HookCallback
+): HookFunction {
+  return (root: Router) => {
+    const router = Router();
+    if (typeof pathOrCb === 'string') {
+      if (cb) {
+        cb(router, root);
+      }
+      root.use(pathOrCb, router);
+    } else {
+      pathOrCb(router, root);
+    }
   };
 }

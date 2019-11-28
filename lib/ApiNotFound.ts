@@ -1,11 +1,11 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { ApiObject } from './ApiObject';
+import { Responder } from './Responder';
 
-export class ApiNotFound extends ApiObject {
-  protected static _status: string = 'error';
-  protected static _code: number = HTTPStatus.NOT_FOUND;
+export class ApiNotFound implements Responder {
+  public static status: string = 'error';
+  public static code: number = HTTPStatus.NOT_FOUND;
 
   public static respond(res: Response, message?: string) {
     const instance = new ApiNotFound(res, message);
@@ -14,9 +14,11 @@ export class ApiNotFound extends ApiObject {
 
   private message: string;
 
-  constructor(res: Response, message: string = 'Not found.') {
-    super(res);
+  public res: Response;
+
+  constructor(res: Response, message: string = 'Not found') {
     this.message = message;
+    this.res = res;
   }
 
   public respond() {
