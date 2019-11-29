@@ -8,25 +8,21 @@ import { isResponder } from './Responder';
 
 export interface ErrorHandlerOptions {
   wrapErrors?: boolean;
-  strict?: boolean;
 }
 
 export function errorHandler(
   opt: ErrorHandlerOptions = {}
 ): ErrorRequestHandler {
   return (err, req, res, next) => {
-    const { wrapErrors = true, strict = true } = opt;
+    const { wrapErrors = true } = opt;
     if (!res.headersSent) {
       if (isApiError(err)) {
         log('Caught ApiError: %s', err.stack);
-        return err.respond();
-      } else if (isResponder(err) && strict === false) {
-        log('Caught responder: %s', err.constructor.name);
-        return err.respond();
+        err.respond();
       } else if (wrapErrors) {
-        const error = new ApiError(res, err);
-        log('Caught native error: %s', error.stack);
-        return error.respond();
+        log('Caught native error: %s', err.stack);
+        const wrap = new ApiError(res, err);
+        wrap.respond();
       }
     }
     return next(err);
@@ -45,18 +41,16 @@ export function createHandler(
   return (req, res, next) => {
     Promise.resolve(action(req, res, next))
       .then(result => {
-        if (lazyError(result)) {
-          if (throwAllErrors === true) {
-            return Promise.reject(result);
-          } else if (!isApiError(result)) {
+        if (isResponder(result)) {
+          if (isApiError(result) && throwAllErrors) {
             return Promise.reject(result);
           }
-        }
-        if (!res.headersSent) {
-          if (isResponder(result)) {
+          if (!res.headersSent) {
             log('Responded with responder: %s', result.constructor.name);
             return result.respond();
           }
+        } else if (lazyError(result)) {
+          return Promise.reject(result);
         }
       })
       .catch(next);

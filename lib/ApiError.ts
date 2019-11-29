@@ -1,14 +1,14 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { Responder } from './Responder';
+import { Responder, isResponder } from './Responder';
 
 export function lazyError(e: any): e is Error {
   return e && typeof e.stack === 'string' && typeof e.message === 'string';
 }
 
 export function isApiError(e: any): e is ApiError {
-  return lazyError(e) && typeof (e as ApiError).respond === 'function';
+  return lazyError(e) && isResponder(e);
 }
 
 export class ApiError extends Error implements Responder {

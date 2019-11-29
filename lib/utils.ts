@@ -1,5 +1,6 @@
 export interface CheckReqOptions {
   strict?: boolean;
+  error?: string;
 }
 
 export function checkReq<T = any>(
@@ -7,12 +8,16 @@ export function checkReq<T = any>(
   req: any,
   opt: CheckReqOptions = {}
 ): T {
-  const { strict = true } = opt;
+  const { strict = true, error } = opt;
   if (req && req[key]) {
     return req[key];
   } else {
     if (strict !== false) {
-      throw new Error(`req.${key} not found when expected`);
+      if (typeof error === 'string') {
+        throw new Error(error);
+      } else {
+        throw new Error(`req.${key} not found when expected`);
+      }
     } else {
       return undefined as any;
     }
