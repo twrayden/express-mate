@@ -34,7 +34,6 @@ export const helloWorld = createHandler((req, res) => {
    */
 });
 
-
 // Add the handler to the express router
 router.get('/hello-world', helloWorld);
 ```
@@ -57,11 +56,10 @@ export const helloWorldGet = createHandler((req, res) => {
    */
 });
 
-export const helloWorld = createHook('/hello-world', (router) => {
+export const helloWorld = createHook('/hello-world', router => {
   // Endpoint: /hello-world/hello
   router.get('/hello', helloWorldGet);
 });
-
 
 // Add the hook to the express router
 router.use('/', helloWorld);

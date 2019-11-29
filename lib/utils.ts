@@ -9,6 +9,7 @@ export function checkReq<T = any>(
   opt: CheckReqOptions = {}
 ): T {
   const { strict = true, error } = opt;
+
   if (req && req[key]) {
     return req[key];
   } else {

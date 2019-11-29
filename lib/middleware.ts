@@ -4,53 +4,77 @@ import debug from 'debug';
 const log = debug('express-mate:middleware');
 
 import { ApiError, isApiError, lazyError } from './ApiError';
-import { isResponder } from './Responder';
+import { isResponder, Responder } from './Responder';
 
 export interface ErrorHandlerOptions {
   wrapErrors?: boolean;
+  jsend?: boolean;
 }
 
 export function errorHandler(
   opt: ErrorHandlerOptions = {}
 ): ErrorRequestHandler {
   return (err, req, res, next) => {
-    const { wrapErrors = true } = opt;
+    const { wrapErrors = true, jsend = true } = opt;
+
     if (!res.headersSent) {
+      let responder: Responder | undefined;
+
       if (isApiError(err)) {
         log('Caught ApiError: %s', err.stack);
-        err.respond();
+
+        responder = err;
       } else if (wrapErrors) {
-        log('Caught native error: %s', err.stack);
-        const wrap = new ApiError(res, err);
-        wrap.respond();
+        if (lazyError(err)) {
+          log('Caught native error: %s', err.stack);
+
+          responder = new ApiError(res, err);
+        } else if (typeof err === 'string') {
+          log('Caught native error: %s', err);
+
+          responder = new ApiError(res, err);
+        }
+      }
+
+      if (isResponder(responder)) {
+        if (jsend) {
+          responder.jsend();
+        } else {
+          responder.raw();
+        }
       }
     }
+
     return next(err);
   };
 }
 
 export interface HandlerOptions {
-  throwAllErrors?: boolean;
+  throwErrors?: boolean;
+  jsend?: boolean;
 }
 
 export function createHandler(
   action: RequestHandler,
   opt: HandlerOptions = {}
 ): RequestHandler {
-  const { throwAllErrors = false } = opt;
+  const { throwErrors = false, jsend = true } = opt;
+
   return (req, res, next) => {
     Promise.resolve(action(req, res, next))
       .then(result => {
-        if (isResponder(result)) {
-          if (isApiError(result) && throwAllErrors) {
-            return Promise.reject(result);
-          }
+        if (throwErrors === true && lazyError(result)) {
+          return Promise.reject(result);
+        } else if (isResponder(result)) {
           if (!res.headersSent) {
             log('Responded with responder: %s', result.constructor.name);
-            return result.respond();
+
+            if (jsend) {
+              return result.jsend();
+            } else {
+              return result.raw();
+            }
           }
-        } else if (lazyError(result)) {
-          return Promise.reject(result);
         }
       })
       .catch(next);
@@ -68,10 +92,12 @@ export function createHook(
 ): HookFunction {
   return (root: Router) => {
     const router = Router();
+
     if (typeof pathOrCb === 'string') {
       if (cb) {
         cb(router, root);
       }
+
       root.use(pathOrCb, router);
     } else {
       pathOrCb(router, root);

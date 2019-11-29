@@ -1,29 +1,49 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { Responder } from './Responder';
+import { Responder, RespondOptions } from './Responder';
 
 export class ApiSuccess implements Responder {
   public static status: string = 'success';
   public static code: number = HTTPStatus.OK;
 
-  public static respond(res: Response, data?: any) {
-    const instance = new ApiSuccess(res, data);
-    instance.respond();
+  public static respond(res: Response, data?: any, opt: RespondOptions = {}) {
+    const { jsend = true, meta } = opt;
+    const instance = new ApiSuccess(res, data, meta);
+    if (jsend) {
+      instance.jsend();
+    } else {
+      instance.raw();
+    }
   }
 
   private data: any;
 
+  public meta: any;
   public res: Response;
 
-  constructor(res: Response, data?: any) {
+  constructor(res: Response, data?: any, meta: any = {}) {
     this.data = data;
+    this.meta = meta;
     this.res = res;
   }
 
-  public respond() {
-    this.res.status(ApiSuccess.code).json({
-      status: ApiSuccess.status,
+  public get status() {
+    return ApiSuccess.status;
+  }
+
+  public get code() {
+    return ApiSuccess.code;
+  }
+
+  public raw() {
+    return this.res.status(this.code).json(this.data);
+  }
+
+  public jsend() {
+    this.res.status(this.code).json({
+      ...this.meta,
+      status: this.status,
       data: this.data
     });
   }

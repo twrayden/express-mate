@@ -1,29 +1,54 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { Responder } from './Responder';
+import { Responder, RespondOptions } from './Responder';
 
 export class ApiUnauthorized implements Responder {
   public static status: string = 'error';
   public static code: number = HTTPStatus.UNAUTHORIZED;
 
-  public static respond(res: Response, message?: string) {
-    const instance = new ApiUnauthorized(res, message);
-    instance.respond();
+  public static respond(
+    res: Response,
+    message?: string,
+    opt: RespondOptions = {}
+  ) {
+    const { jsend = true, meta } = opt;
+    const instance = new ApiUnauthorized(res, message, meta);
+    if (jsend) {
+      instance.jsend();
+    } else {
+      instance.raw();
+    }
   }
 
   private message: string;
 
+  public meta: any;
   public res: Response;
 
-  constructor(res: Response, message: string = 'Unauthorized') {
+  constructor(res: Response, message: string = 'Unauthorized', meta: any = {}) {
     this.message = message;
+    this.meta = meta;
     this.res = res;
   }
 
-  public respond() {
-    this.res
-      .status(ApiUnauthorized.code)
-      .json({ status: ApiUnauthorized.status, message: this.message });
+  public get status() {
+    return ApiUnauthorized.status;
+  }
+
+  public get code() {
+    return ApiUnauthorized.code;
+  }
+
+  public raw() {
+    this.res.status(this.code).send(this.message);
+  }
+
+  public jsend() {
+    this.res.status(this.code).json({
+      ...this.meta,
+      status: this.status,
+      message: this.message
+    });
   }
 }

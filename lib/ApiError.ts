@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { Responder, isResponder } from './Responder';
+import { Responder, isResponder, RespondOptions } from './Responder';
 
 export function lazyError(e: any): e is Error {
   return e && typeof e.stack === 'string' && typeof e.message === 'string';
@@ -25,30 +25,62 @@ export class ApiError extends Error implements Responder {
     }
   }
 
-  public static respond(res: Response, error?: Error): void;
-  public static respond(res: Response, message?: string): void;
-  public static respond(res: Response, data?: any): void {
-    const instance = new ApiError(res, data);
-    instance.respond();
+  public static respond(
+    res: Response,
+    error?: Error,
+    opt?: RespondOptions
+  ): void;
+  public static respond(
+    res: Response,
+    message?: string,
+    opt?: RespondOptions
+  ): void;
+  public static respond(
+    res: Response,
+    data?: any,
+    opt: RespondOptions = {}
+  ): void {
+    const { jsend = true, meta } = opt;
+    const instance = new ApiError(res, data, meta);
+    if (jsend) {
+      instance.jsend();
+    } else {
+      instance.raw();
+    }
   }
 
+  public meta: any;
   public res: Response;
 
-  constructor(res: Response, error?: Error);
-  constructor(res: Response, message?: string);
-  constructor(res: Response, data?: any) {
+  constructor(res: Response, error?: Error, meta?: any);
+  constructor(res: Response, message?: string, meta?: any);
+  constructor(res: Response, data?: any, meta: any = {}) {
     super(ApiError.getMessage(data));
     Object.setPrototypeOf(this, ApiError.prototype);
     if (lazyError(data)) {
       this.stack = data.stack;
       this.name = data.name;
     }
+    this.meta = meta;
     this.res = res;
   }
 
-  public respond() {
-    this.res.status(ApiError.code).json({
-      status: ApiError.status,
+  public get status() {
+    return ApiError.status;
+  }
+
+  public get code() {
+    return ApiError.code;
+  }
+
+  public raw() {
+    this.res.status(this.code).send(this.message);
+  }
+
+  public jsend() {
+    this.res.status(this.code).json({
+      ...this.meta,
+      status: this.status,
       message: this.message
     });
   }

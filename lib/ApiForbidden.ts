@@ -1,29 +1,57 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { Responder } from './Responder';
+import { Responder, RespondOptions } from './Responder';
 
 export class ApiForbidden implements Responder {
   public static status: string = 'error';
   public static code: number = HTTPStatus.FORBIDDEN;
 
-  public static respond(res: Response, message?: string) {
-    const instance = new ApiForbidden(res, message);
-    instance.respond();
+  public static respond(
+    res: Response,
+    message?: string,
+    opt: RespondOptions = {}
+  ) {
+    const { jsend = true, meta } = opt;
+    const instance = new ApiForbidden(res, message, meta);
+    if (jsend) {
+      instance.jsend();
+    } else {
+      instance.raw();
+    }
   }
 
   private message: string;
 
+  public meta: any;
   public res: Response;
 
-  constructor(res: Response, message: string = 'Insufficient permissions') {
+  constructor(
+    res: Response,
+    message: string = 'Insufficient permissions',
+    meta: any = {}
+  ) {
     this.message = message;
+    this.meta = meta;
     this.res = res;
   }
 
-  public respond() {
-    this.res.status(ApiForbidden.code).json({
-      status: ApiForbidden.status,
+  public get status() {
+    return ApiForbidden.status;
+  }
+
+  public get code() {
+    return ApiForbidden.code;
+  }
+
+  public raw() {
+    this.res.status(this.code).send(this.message);
+  }
+
+  public jsend() {
+    this.res.status(this.code).json({
+      ...this.meta,
+      status: this.status,
       message: this.message
     });
   }
