@@ -67,8 +67,7 @@ export function createHandler(
           return Promise.reject(result);
         } else if (isResponder(result)) {
           if (!res.headersSent) {
-            // TODO: include responder identifier
-            log('Responded with responder: %s', 'unknown');
+            log('Responded with responder: %s', result.constructor.name);
 
             if (jsend) {
               return result.jsend();
