@@ -17,7 +17,9 @@ export function errorHandler(
   return (err, req, res, next) => {
     const { wrapErrors = true, jsend = true } = opt;
 
-    if (!res.headersSent) {
+    if (res.headersSent) {
+      return next(err);
+    } else {
       let responder: Responder | undefined;
 
       if (isApiError(err)) {
@@ -42,10 +44,10 @@ export function errorHandler(
         } else {
           responder.raw();
         }
+      } else {
+        return next(err);
       }
     }
-
-    return next(err);
   };
 }
 
