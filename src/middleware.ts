@@ -23,12 +23,8 @@ export function errorHandler(opt: HandlerOptions = {}): ErrorRequestHandler {
       if (!res.headersSent) {
         const error = wrapError(res, err);
         if (error) {
+          log('responding error: %', err.stack);
           triggerResponder(error, responseFormat);
-          if (lazyError(err)) {
-            log('responding error: %', err.stack);
-            next(err);
-          }
-          return;
         }
       }
     }
