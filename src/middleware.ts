@@ -1,64 +1,34 @@
-import { Router, RequestHandler, ErrorRequestHandler, Response } from 'express';
+import { Router, RequestHandler, ErrorRequestHandler } from 'express';
 import debug from 'debug';
 
-const log = debug('express-mate:middleware');
+const baseLogger = debug('express-mate:middleware');
 
-import { ApiError, isApiError, lazyError } from './ApiError';
-import { isResponder, Responder } from './Responder';
+import { lazyError, wrapError } from './ApiError';
+import { isResponder, triggerResponder } from './Responder';
 import { ApiSuccess } from './ApiSuccess';
-import { Settings } from './settings';
+import { Settings, BaseOptions } from './settings';
 
-export interface ErrorOptions {
-  respond?: boolean;
-}
+export interface HandlerOptions extends BaseOptions {}
 
-export interface ResponseOptions {
-  jsend?: boolean;
-}
-
-function respond(responder: Responder, opt: ResponseOptions): void {
-  if (isResponder(responder)) {
-    log('Responded with responder: %s', responder.constructor.name);
-
-    if (opt.jsend) {
-      responder.jsend();
-    } else {
-      responder.raw();
-    }
-  }
-}
-
-function wrapError(res: Response, err: any): ApiError | undefined {
-  if (isApiError(err)) {
-    return err;
-  } else if (lazyError(err)) {
-    log('Caught native error: %s', err.stack);
-
-    return new ApiError(res, err);
-  } else if (typeof err === 'string') {
-    log('Caught native error: %s', err);
-
-    return new ApiError(res, err);
-  }
-  return undefined;
-}
-
-export interface ErrorHandlerOptions {
-  errors?: ErrorOptions;
-  response?: ResponseOptions;
-}
-
-export function errorHandler(
-  opt: ErrorHandlerOptions = {}
-): ErrorRequestHandler {
+export function errorHandler(opt: HandlerOptions = {}): ErrorRequestHandler {
+  const log = baseLogger.extend('errorHandler');
   return (err, _, res, next) => {
-    const { errors = {}, response = { jsend: Settings.jsend } } = opt;
-
-    if (errors.respond) {
+    const {
+      respondErrors = Settings.respondErrors,
+      responseFormat = Settings.responseFormat
+    } = opt;
+    log('caught error');
+    if (respondErrors) {
+      log('attempting to respond error');
       if (!res.headersSent) {
         const error = wrapError(res, err);
         if (error) {
-          return respond(error, response);
+          triggerResponder(error, responseFormat);
+          if (lazyError(err)) {
+            log('responding error: %', err.stack);
+            next(err);
+          }
+          return;
         }
       }
     }
@@ -66,48 +36,55 @@ export function errorHandler(
   };
 }
 
-export interface HandlerOptions {
-  errors?: ErrorOptions;
-  response?: ResponseOptions;
-}
-
 export function createHandler(
   action: RequestHandler,
   opt: HandlerOptions = {}
 ): RequestHandler {
-  const { errors = {}, response = { jsend: Settings.jsend } } = opt;
-
+  const { respondErrors, responseFormat } = opt;
+  const log = baseLogger.extend('createHandler');
   return (req, res, next) => {
     Promise.resolve(action(req, res, next))
       .then(result => {
         if (lazyError(result)) {
-          if (errors.respond) {
+          log('returned error');
+          if (respondErrors) {
+            log('attempting to respond error');
             if (!res.headersSent) {
               const error = wrapError(res, result);
               if (error) {
-                return respond(error, response);
+                log('responding error: %s', error.stack);
+                return triggerResponder(error, responseFormat);
               }
             }
           } else {
+            log('throwing error: %s', result.stack);
             return Promise.reject(result);
           }
         } else if (isResponder(result)) {
+          log('returned responder');
           if (!res.headersSent) {
-            return respond(result, response);
+            log('triggering responder: %s', result.constructor.name);
+            return triggerResponder(result, responseFormat);
           }
         } else {
+          log('returned primitive value');
           if (!res.headersSent) {
+            log('attempting to wrap value in ApiSuccess');
             const responder = new ApiSuccess(res, result);
-            return respond(responder, response);
+            log('triggering responder: %s', responder.constructor.name);
+            return triggerResponder(responder, responseFormat);
           }
         }
       })
       .catch(err => {
-        if (errors.respond) {
+        log('caught error');
+        if (respondErrors) {
+          log('attempting to respond error');
           if (!res.headersSent) {
             const error = wrapError(res, err);
             if (error) {
-              return respond(error, response);
+              log('responding error: %s', error.stack);
+              return triggerResponder(error, responseFormat);
             }
           }
         }

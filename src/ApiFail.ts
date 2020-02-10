@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { Responder, RespondOptions } from './Responder';
+import { Responder, ResponderOptions, triggerResponder } from './Responder';
 import { Settings } from './settings';
 
 export interface IFailData {
@@ -15,15 +15,11 @@ export class ApiFail implements Responder {
   public static respond(
     res: Response,
     data?: IFailData,
-    opt: RespondOptions = {}
+    opt: ResponderOptions = {}
   ) {
-    const { jsend = Settings.jsend, meta } = opt;
+    const { responseFormat = Settings.responseFormat, meta } = opt;
     const instance = new ApiFail(res, data, meta);
-    if (jsend) {
-      instance.jsend();
-    } else {
-      instance.raw();
-    }
+    return triggerResponder(instance, responseFormat);
   }
 
   private data: IFailData;

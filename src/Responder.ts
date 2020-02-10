@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { BaseOptions, ResponseFormat } from './settings';
 
 export function isResponder(e: any): e is Responder {
   return (
@@ -8,9 +9,8 @@ export function isResponder(e: any): e is Responder {
   );
 }
 
-export interface RespondOptions {
+export interface ResponderOptions extends BaseOptions {
   meta?: any;
-  jsend?: boolean;
 }
 
 export interface Responder {
@@ -20,4 +20,23 @@ export interface Responder {
   meta: any;
   raw(): void;
   jsend(): void;
+}
+
+export function triggerResponder(
+  responder: Responder,
+  responseFormat?: ResponseFormat
+): void {
+  if (isResponder(responder)) {
+    switch (responseFormat) {
+      case ResponseFormat.JSEND: {
+        responder.jsend();
+      }
+      case ResponseFormat.NONE: {
+        responder.raw();
+      }
+      default: {
+        responder.raw();
+      }
+    }
+  }
 }

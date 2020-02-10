@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { Responder, RespondOptions } from './Responder';
+import { Responder, ResponderOptions, triggerResponder } from './Responder';
 import { Settings } from './settings';
 
 export class ApiUnauthorized implements Responder {
@@ -11,15 +11,11 @@ export class ApiUnauthorized implements Responder {
   public static respond(
     res: Response,
     message?: string,
-    opt: RespondOptions = {}
+    opt: ResponderOptions = {}
   ) {
-    const { jsend = Settings.jsend, meta } = opt;
+    const { responseFormat = Settings.responseFormat, meta } = opt;
     const instance = new ApiUnauthorized(res, message, meta);
-    if (jsend) {
-      instance.jsend();
-    } else {
-      instance.raw();
-    }
+    return triggerResponder(instance, responseFormat);
   }
 
   private message: string;

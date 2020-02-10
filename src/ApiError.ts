@@ -1,7 +1,12 @@
 import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
-import { Responder, isResponder, RespondOptions } from './Responder';
+import {
+  Responder,
+  isResponder,
+  ResponderOptions,
+  triggerResponder
+} from './Responder';
 import { Settings } from './settings';
 
 export function lazyError(e: any): e is Error {
@@ -10,6 +15,17 @@ export function lazyError(e: any): e is Error {
 
 export function isApiError(e: any): e is ApiError {
   return lazyError(e) && isResponder(e);
+}
+
+export function wrapError(res: Response, err: any): ApiError | undefined {
+  if (isApiError(err)) {
+    return err;
+  } else if (lazyError(err)) {
+    return new ApiError(res, err);
+  } else if (typeof err === 'string') {
+    return new ApiError(res, err);
+  }
+  return undefined;
 }
 
 export class ApiError extends Error implements Responder {
@@ -29,25 +45,21 @@ export class ApiError extends Error implements Responder {
   public static respond(
     res: Response,
     error?: Error,
-    opt?: RespondOptions
+    opt?: ResponderOptions
   ): void;
   public static respond(
     res: Response,
     message?: string,
-    opt?: RespondOptions
+    opt?: ResponderOptions
   ): void;
   public static respond(
     res: Response,
     data?: any,
-    opt: RespondOptions = {}
+    opt: ResponderOptions = {}
   ): void {
-    const { jsend = Settings.jsend, meta } = opt;
+    const { responseFormat = Settings.responseFormat, meta } = opt;
     const instance = new ApiError(res, data, meta);
-    if (jsend) {
-      instance.jsend();
-    } else {
-      instance.raw();
-    }
+    return triggerResponder(instance, responseFormat);
   }
 
   public meta: any;

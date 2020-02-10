@@ -1,11 +1,36 @@
-let jsend: boolean = false;
+export enum ResponseFormat {
+  JSEND = 'jsend',
+  NONE = 'none'
+}
+
+export interface BaseOptions {
+  responseFormat?: ResponseFormat;
+  respondErrors?: boolean;
+}
+
+let responseFormat: ResponseFormat = ResponseFormat.NONE;
+let respondErrors: boolean = false;
 
 export class Settings {
-  public static get jsend() {
-    return jsend;
+  /**
+   * responseFormat
+   */
+  public static get responseFormat() {
+    return responseFormat;
   }
 
-  public static set jsend(value: boolean) {
-    jsend = value;
+  public static set responseFormat(value: ResponseFormat) {
+    responseFormat = value;
+  }
+
+  /**
+   * respondErrors
+   */
+  public static get respondErrors() {
+    return respondErrors;
+  }
+
+  public static set respondErrors(value: boolean) {
+    respondErrors = value;
   }
 }
