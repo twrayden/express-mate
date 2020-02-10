@@ -50,7 +50,9 @@
     "error"
   ],
   "prettier": {
-    "singleQuote": true
+    "singleQuote": true,
+    "tabWidth": 2,
+    "useTabs": false
   },
   "engines": {
     "node": "10.x.x"

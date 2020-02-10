@@ -2,13 +2,14 @@ import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
 import { Responder, RespondOptions } from './Responder';
+import { Settings } from './settings';
 
 export class ApiSuccess implements Responder {
   public static status: string = 'success';
   public static code: number = HTTPStatus.OK;
 
   public static respond(res: Response, data?: any, opt: RespondOptions = {}) {
-    const { jsend = true, meta } = opt;
+    const { jsend = Settings.jsend, meta } = opt;
     const instance = new ApiSuccess(res, data, meta);
     if (jsend) {
       instance.jsend();

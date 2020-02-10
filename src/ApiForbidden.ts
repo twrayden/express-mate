@@ -2,6 +2,7 @@ import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
 import { Responder, RespondOptions } from './Responder';
+import { Settings } from './settings';
 
 export class ApiForbidden implements Responder {
   public static status: string = 'error';
@@ -12,7 +13,7 @@ export class ApiForbidden implements Responder {
     message?: string,
     opt: RespondOptions = {}
   ) {
-    const { jsend = true, meta } = opt;
+    const { jsend = Settings.jsend, meta } = opt;
     const instance = new ApiForbidden(res, message, meta);
     if (jsend) {
       instance.jsend();

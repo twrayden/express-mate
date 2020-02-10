@@ -13,14 +13,6 @@ export interface RespondOptions {
   jsend?: boolean;
 }
 
-// TODO: find a way to ensure static variables
-// export interface ApiObject {
-//   new (): Responder;
-//   status: string;
-//   code: number;
-//   jsend(): void;
-// }
-
 export interface Responder {
   code: number;
   status: string;

@@ -2,6 +2,7 @@ import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
 import { Responder, isResponder, RespondOptions } from './Responder';
+import { Settings } from './settings';
 
 export function lazyError(e: any): e is Error {
   return e && typeof e.stack === 'string' && typeof e.message === 'string';
@@ -40,7 +41,7 @@ export class ApiError extends Error implements Responder {
     data?: any,
     opt: RespondOptions = {}
   ): void {
-    const { jsend = true, meta } = opt;
+    const { jsend = Settings.jsend, meta } = opt;
     const instance = new ApiError(res, data, meta);
     if (jsend) {
       instance.jsend();

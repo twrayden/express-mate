@@ -2,6 +2,7 @@ import { Response } from 'express';
 import HTTPStatus from 'http-status';
 
 import { Responder, RespondOptions } from './Responder';
+import { Settings } from './settings';
 
 export interface IFailData {
   [key: string]: string;
@@ -16,7 +17,7 @@ export class ApiFail implements Responder {
     data?: IFailData,
     opt: RespondOptions = {}
   ) {
-    const { jsend = true, meta } = opt;
+    const { jsend = Settings.jsend, meta } = opt;
     const instance = new ApiFail(res, data, meta);
     if (jsend) {
       instance.jsend();
