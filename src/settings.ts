@@ -1,14 +1,16 @@
-export enum ResponseFormat {
-  JSEND = 'jsend',
-  NONE = 'none'
+export interface ResponseFormats {
+  jsend: 'jsend';
+  none: 'none';
 }
+
+export type ResponseFormat = keyof ResponseFormats;
 
 export interface BaseOptions {
   responseFormat?: ResponseFormat;
   respondErrors?: boolean;
 }
 
-let responseFormat: ResponseFormat = ResponseFormat.NONE;
+let responseFormat: ResponseFormat = 'none';
 let respondErrors: boolean = false;
 
 export class Settings {

@@ -28,10 +28,10 @@ export function triggerResponder(
 ): void {
   if (isResponder(responder)) {
     switch (responseFormat) {
-      case ResponseFormat.JSEND: {
+      case 'jsend': {
         responder.jsend();
       }
-      case ResponseFormat.NONE: {
+      case 'none': {
         responder.raw();
       }
       default: {
