@@ -17,16 +17,20 @@ export function errorHandler(opt: HandlerOptions = {}): ErrorRequestHandler {
       respondErrors = Settings.respondErrors,
       responseFormat = Settings.responseFormat
     } = opt;
-    log('caught error');
-    if (respondErrors) {
-      log('attempting to respond error');
-      if (!res.headersSent) {
-        const error = wrapError(res, err);
-        if (error) {
-          log('responding error: %', err.stack);
-          triggerResponder(error, responseFormat);
+    try {
+      log('caught error');
+      if (respondErrors) {
+        log('attempting to respond error');
+        if (!res.headersSent) {
+          const error = wrapError(res, err);
+          if (error) {
+            log('responding error: %', err.stack);
+            triggerResponder(error, responseFormat);
+          }
         }
       }
+    } catch (err2) {
+      log('error occurred whilst processing error handler: %s', err2.stack);
     }
     return next(err);
   };
@@ -44,35 +48,42 @@ export function createHandler(
   return (req, res, next) => {
     Promise.resolve(action(req, res, next))
       .then(result => {
-        if (lazyError(result)) {
-          log('returned error');
-          if (respondErrors) {
-            log('attempting to respond error');
-            if (!res.headersSent) {
-              const error = wrapError(res, result);
-              if (error) {
-                log('responding error: %s', error.stack);
-                return triggerResponder(error, responseFormat);
+        try {
+          if (lazyError(result)) {
+            log('returned error');
+            if (respondErrors) {
+              log('attempting to respond error');
+              if (!res.headersSent) {
+                const error = wrapError(res, result);
+                if (error) {
+                  log('responding error: %s', error.stack);
+                  return triggerResponder(error, responseFormat);
+                }
               }
+            } else {
+              log('throwing error: %s', result.stack);
+              return Promise.reject(result);
+            }
+          } else if (isResponder(result)) {
+            log('returned responder');
+            if (!res.headersSent) {
+              log('triggering responder: %s', result.constructor.name);
+              return triggerResponder(result, responseFormat);
             }
           } else {
-            log('throwing error: %s', result.stack);
-            return Promise.reject(result);
+            log('returned primitive value');
+            if (!res.headersSent) {
+              log('attempting to wrap value in ApiSuccess');
+              const responder = new ApiSuccess(res, result);
+              log('triggering responder: %s', responder.constructor.name);
+              return triggerResponder(responder, responseFormat);
+            }
           }
-        } else if (isResponder(result)) {
-          log('returned responder');
-          if (!res.headersSent) {
-            log('triggering responder: %s', result.constructor.name);
-            return triggerResponder(result, responseFormat);
-          }
-        } else {
-          log('returned primitive value');
-          if (!res.headersSent) {
-            log('attempting to wrap value in ApiSuccess');
-            const responder = new ApiSuccess(res, result);
-            log('triggering responder: %s', responder.constructor.name);
-            return triggerResponder(responder, responseFormat);
-          }
+        } catch (err) {
+          log(
+            'error occurred whilst processing request handler: %s',
+            err.stack
+          );
         }
       })
       .catch(err => {

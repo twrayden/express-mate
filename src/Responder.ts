@@ -29,13 +29,13 @@ export function triggerResponder(
   if (isResponder(responder)) {
     switch (responseFormat) {
       case 'jsend': {
-        responder.jsend();
+        return responder.jsend();
       }
       case 'none': {
-        responder.raw();
+        return responder.raw();
       }
       default: {
-        responder.raw();
+        return responder.raw();
       }
     }
   }
