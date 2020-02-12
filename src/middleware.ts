@@ -36,7 +36,10 @@ export function createHandler(
   action: RequestHandler,
   opt: HandlerOptions = {}
 ): RequestHandler {
-  const { respondErrors, responseFormat } = opt;
+  const {
+    respondErrors = Settings.respondErrors,
+    responseFormat = Settings.responseFormat
+  } = opt;
   const log = baseLogger.extend('createHandler');
   return (req, res, next) => {
     Promise.resolve(action(req, res, next))
