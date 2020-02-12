@@ -1,6 +1,6 @@
 export interface ResponseFormats {
-  jsend: 'jsend';
-  none: 'none';
+  jsend?: string;
+  none?: string;
 }
 
 export type ResponseFormat = keyof ResponseFormats;
