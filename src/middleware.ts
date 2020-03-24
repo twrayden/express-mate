@@ -3,103 +3,74 @@ import debug from 'debug';
 
 const baseLogger = debug('express-mate:middleware');
 
-import { lazyError, wrapError } from './ApiError';
+import { wrapError, isApiError } from './ApiError';
 import { isResponder, triggerResponder } from './Responder';
-import { ApiSuccess } from './ApiSuccess';
 import { Settings, BaseOptions } from './settings';
 
-export interface HandlerOptions extends BaseOptions {}
+export interface ErrorHandlerOptions extends BaseOptions {
+  wrapErrors?: boolean;
+}
 
-export function errorHandler(opt: HandlerOptions = {}): ErrorRequestHandler {
+export function errorHandler(
+  opt: ErrorHandlerOptions = {}
+): ErrorRequestHandler {
   const log = baseLogger.extend('errorHandler');
-  return (err, _, res, next) => {
+  return (error, _, res, next) => {
     const {
-      respondErrors = Settings.respondErrors,
+      wrapErrors = false,
       responseFormat = Settings.responseFormat
     } = opt;
     try {
-      log('caught error');
-      if (respondErrors) {
-        log('attempting to respond error');
-        if (!res.headersSent) {
-          const error = wrapError(res, err);
-          if (error) {
-            log('responding error: %', err.stack);
-            triggerResponder(error, responseFormat);
+      if (!res.headersSent) {
+        if (isApiError(error)) {
+          log('caught error responder');
+          return triggerResponder(error, responseFormat); // Stop middleware because ApiError is express-mate exclusive
+        } else if (wrapErrors) {
+          log('caught error');
+          log('attempting to wrap error: %', error);
+          const wrap = wrapError(res, error);
+          if (wrap) {
+            log('successfully wrapped error');
+            triggerResponder(wrap, responseFormat); // Don't stop middleware
+          } else {
+            log('failed to wrap error');
           }
         }
+      } else {
+        log('headers already sent, ignoring errors');
       }
-    } catch (err2) {
-      log('error occurred whilst processing error handler: %s', err2.stack);
+    } catch (err) {
+      log('error occurred whilst processing error: %s', err.stack);
     }
-    return next(err);
+    return next(error);
   };
 }
+
+export interface HandlerOptions extends BaseOptions {}
 
 export function createHandler(
   action: RequestHandler,
   opt: HandlerOptions = {}
 ): RequestHandler {
-  const {
-    respondErrors = Settings.respondErrors,
-    responseFormat = Settings.responseFormat
-  } = opt;
+  const { responseFormat = Settings.responseFormat } = opt;
   const log = baseLogger.extend('createHandler');
   return (req, res, next) => {
     Promise.resolve(action(req, res, next))
       .then(result => {
         try {
-          if (lazyError(result)) {
-            log('returned error');
-            if (respondErrors) {
-              log('attempting to respond error');
-              if (!res.headersSent) {
-                const error = wrapError(res, result);
-                if (error) {
-                  log('responding error: %s', error.stack);
-                  return triggerResponder(error, responseFormat);
-                }
-              }
-            } else {
-              log('throwing error: %s', result.stack);
-              return Promise.reject(result);
-            }
-          } else if (isResponder(result)) {
-            log('returned responder');
-            if (!res.headersSent) {
-              log('triggering responder: %s', result.constructor.name);
+          if (!res.headersSent) {
+            if (isResponder(result)) {
+              log('captured responder');
               return triggerResponder(result, responseFormat);
             }
           } else {
-            log('returned primitive value');
-            if (!res.headersSent) {
-              log('attempting to wrap value in ApiSuccess');
-              const responder = new ApiSuccess(res, result);
-              log('triggering responder: %s', responder.constructor.name);
-              return triggerResponder(responder, responseFormat);
-            }
+            log('headers already sent, ignoring responders');
           }
         } catch (err) {
-          log(
-            'error occurred whilst processing request handler: %s',
-            err.stack
-          );
+          log('error occurred whilst processing request result: %s', err.stack);
         }
       })
-      .catch(err => {
-        log('caught error');
-        if (respondErrors) {
-          log('attempting to respond error');
-          if (!res.headersSent) {
-            const error = wrapError(res, err);
-            if (error) {
-              log('responding error: %s', error.stack);
-              return triggerResponder(error, responseFormat);
-            }
-          }
-        }
-        return next(err);
-      });
+      .catch(next);
   };
 }
 

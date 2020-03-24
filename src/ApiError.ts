@@ -18,9 +18,7 @@ export function isApiError(e: any): e is ApiError {
 }
 
 export function wrapError(res: Response, err: any): ApiError | undefined {
-  if (isApiError(err)) {
-    return err;
-  } else if (lazyError(err)) {
+  if (lazyError(err)) {
     return new ApiError(res, err);
   } else if (typeof err === 'string') {
     return new ApiError(res, err);

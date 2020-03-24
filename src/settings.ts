@@ -7,11 +7,9 @@ export type ResponseFormat = keyof ResponseFormats;
 
 export interface BaseOptions {
   responseFormat?: ResponseFormat;
-  respondErrors?: boolean;
 }
 
 let responseFormat: ResponseFormat = 'none';
-let respondErrors: boolean = false;
 
 export class Settings {
   /**
@@ -23,16 +21,5 @@ export class Settings {
 
   public static set responseFormat(value: ResponseFormat) {
     responseFormat = value;
-  }
-
-  /**
-   * respondErrors
-   */
-  public static get respondErrors() {
-    return respondErrors;
-  }
-
-  public static set respondErrors(value: boolean) {
-    respondErrors = value;
   }
 }

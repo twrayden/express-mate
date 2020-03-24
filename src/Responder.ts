@@ -1,4 +1,8 @@
 import { Response } from 'express';
+import debug from 'debug';
+
+const log = debug('express-mate:responder');
+
 import { BaseOptions, ResponseFormat } from './settings';
 
 export function isResponder(e: any): e is Responder {
@@ -26,6 +30,7 @@ export function triggerResponder(
   responder: Responder,
   responseFormat?: ResponseFormat
 ): void {
+  log('triggering responder: %s', responder.constructor.name);
   if (isResponder(responder)) {
     switch (responseFormat) {
       case 'jsend': {
