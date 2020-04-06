@@ -1,8 +1,4 @@
-export function assertReq<T = any>(
-  req: any,
-  key: string,
-  message?: string
-): T | undefined {
+export function assertReq<T = any>(req: any, key: string, message?: string): T {
   if (req && req[key]) {
     return req[key];
   } else {
