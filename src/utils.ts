@@ -1,26 +1,24 @@
-export interface CheckReqOptions {
-  strict?: boolean;
-  customError?: string;
-}
-
-export function checkReq<T = any>(
-  key: string,
+export function assertReq<T = any>(
   req: any,
-  opt: CheckReqOptions = {}
-): T {
-  const { strict = true, customError } = opt;
-
+  key: string,
+  message?: string
+): T | undefined {
   if (req && req[key]) {
     return req[key];
   } else {
-    if (strict !== false) {
-      if (typeof customError === 'string') {
-        throw new Error(customError);
-      } else {
-        throw new Error(`req.${key} not found when expected`);
-      }
-    } else {
-      return undefined as any;
-    }
+    throw new Error(message ? message : `req.${key} undefined when expected`);
   }
+}
+
+export function getReq<T = any>(req: any, key: string): T | undefined {
+  if (req && req[key]) {
+    return req[key];
+  } else {
+    return undefined;
+  }
+}
+
+export function setReq<T = any>(req: any, key: string, value: T): T {
+  req[key] = value;
+  return value;
 }
