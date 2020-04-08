@@ -18,7 +18,7 @@ export function errorHandler(
   return (error, _, res, next) => {
     const {
       wrapErrors = false,
-      responseFormat = Settings.responseFormat
+      responseFormat = Settings.responseFormat,
     } = opt;
     try {
       if (!res.headersSent) {
@@ -56,7 +56,7 @@ export function createHandler(
   const log = baseLogger.extend('createHandler');
   return (req, res, next) => {
     Promise.resolve(action(req, res, next))
-      .then(result => {
+      .then((result) => {
         try {
           if (!res.headersSent) {
             if (isResponder(result)) {
@@ -84,7 +84,7 @@ export function createHook(
   cb?: HookCallback
 ): HookFunction {
   return (root: Router) => {
-    const router = Router();
+    const router = Router({ mergeParams: true });
 
     if (typeof pathOrCb === 'string') {
       if (cb) {
