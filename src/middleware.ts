@@ -54,14 +54,14 @@ export function errorHandler(
 export interface HandlerOptions extends BaseOptions {}
 
 export function createHandler(
-  action: RequestHandler,
+  handler: RequestHandler,
   opt: HandlerOptions = {}
 ): RequestHandler {
   const { responseFormat = Settings.responseFormat } = opt;
   const log = baseLogger.extend('createHandler');
-  return (req, res, next) => {
-    Promise.resolve(action(req, res, next))
-      .then((result) => {
+  return async (req, res, next) => {
+    try {
+      await Promise.resolve(handler(req, res, next)).then((result) => {
         try {
           if (!res.headersSent) {
             if (isResponder(result)) {
@@ -74,11 +74,11 @@ export function createHandler(
         } catch (err) {
           log('error occurred whilst processing request result: %s', err.stack);
         }
-      })
-      .catch((err) => {
-        log('caught error');
-        return next(err);
       });
+    } catch (err) {
+      log('caught error');
+      return next(err);
+    }
   };
 }
 
