@@ -111,7 +111,7 @@ export function createHook(
   opt: HookOptions = {}
 ): HookFunction {
   return (root: Router) => {
-    const router = Router(opt.routerOptions);
+    const router = Router({ mergeParams: true, ...opt.routerOptions });
 
     cb(router, root);
 
