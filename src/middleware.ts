@@ -1,4 +1,9 @@
-import { Router, RequestHandler, ErrorRequestHandler } from 'express';
+import {
+  Router,
+  RequestHandler,
+  ErrorRequestHandler,
+  RouterOptions,
+} from 'express';
 import debug from 'debug';
 
 const baseLogger = debug('express-mate:middleware');
@@ -70,30 +75,30 @@ export function createHandler(
           log('error occurred whilst processing request result: %s', err.stack);
         }
       })
-      .catch(next);
+      .catch((err) => {
+        log('caught error');
+        return next(err);
+      });
   };
+}
+
+export interface HookOptions {
+  routerOptions?: RouterOptions;
 }
 
 export type HookCallback = (router: Router, root: Router) => any;
 export type HookFunction = (root: Router) => any;
 
-export function createHook(cb: HookCallback): HookFunction;
-export function createHook(path: string, cb: HookCallback): HookFunction;
 export function createHook(
-  pathOrCb: string | HookCallback,
-  cb?: HookCallback
+  path: string,
+  cb: HookCallback,
+  opt: HookOptions = {}
 ): HookFunction {
   return (root: Router) => {
-    const router = Router({ mergeParams: true });
+    const router = Router(opt.routerOptions);
 
-    if (typeof pathOrCb === 'string') {
-      if (cb) {
-        cb(router, root);
-      }
+    cb(router, root);
 
-      root.use(pathOrCb, router);
-    } else {
-      pathOrCb(router, root);
-    }
+    root.use(path, router);
   };
 }
