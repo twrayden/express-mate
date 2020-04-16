@@ -9,45 +9,59 @@ import debug from 'debug';
 const baseLogger = debug('express-mate:middleware');
 
 import { wrapError, isApiError } from './ApiError';
-import { isResponder, triggerResponder } from './Responder';
-import { Settings, BaseOptions } from './settings';
+import { isResponder, triggerResponder, Responder } from './Responder';
+import { BaseOptions, injectSettings } from './settings';
 
-export interface ErrorHandlerOptions extends BaseOptions {
-  wrapErrors?: boolean;
-}
+export interface ErrorHandlerOptions extends BaseOptions {}
 
 export function errorHandler(
   opt: ErrorHandlerOptions = {}
 ): ErrorRequestHandler {
-  const log = baseLogger.extend('errorHandler');
-  return (error, _, res, next) => {
-    const {
-      wrapErrors = false,
-      responseFormat = Settings.responseFormat,
-    } = opt;
-    try {
-      if (!res.headersSent) {
-        if (isApiError(error)) {
-          log('caught error responder');
-          return triggerResponder(error, responseFormat); // Stop middleware because ApiError is express-mate exclusive
-        } else if (wrapErrors) {
-          log('caught error');
-          log('attempting to wrap error: %', error);
-          const wrap = wrapError(res, error);
-          if (wrap) {
-            log('successfully wrapped error');
-            triggerResponder(wrap, responseFormat); // Don't stop middleware
-          } else {
-            log('failed to wrap error');
+  return (err, _, res, next) => {
+    const { handleErrors, ignoreNativeErrors, responseFormat } = injectSettings(
+      opt
+    );
+
+    const log = baseLogger.extend('errorHandler');
+
+    if (handleErrors) {
+      try {
+        if (!res.headersSent) {
+          let responder: Responder | undefined;
+
+          if (isApiError(err)) {
+            log('caught error responder');
+
+            responder = err;
+          } else if (!ignoreNativeErrors) {
+            log('caught native error');
+            log('attempting to wrap error: %', err);
+
+            const wrap = wrapError(res, err);
+
+            if (isApiError(wrap)) {
+              log('successfully wrapped error');
+
+              responder = wrap;
+            } else {
+              log('failed to wrap error');
+            }
           }
+
+          if (responder) {
+            return triggerResponder(responder, responseFormat);
+          }
+        } else {
+          log('headers already sent, ignoring errors');
         }
-      } else {
-        log('headers already sent, ignoring errors');
+      } catch (_err) {
+        log('error occurred whilst processing error: %s', _err.stack);
       }
-    } catch (err) {
-      log('error occurred whilst processing error: %s', err.stack);
+    } else {
+      log('error handling disabled, passing error to next()');
+
+      return next(err);
     }
-    return next(error);
   };
 }
 
@@ -57,15 +71,18 @@ export function createHandler(
   handler: RequestHandler,
   opt: HandlerOptions = {}
 ): RequestHandler {
-  const { responseFormat = Settings.responseFormat } = opt;
+  const { responseFormat } = injectSettings(opt);
+
   const log = baseLogger.extend('createHandler');
-  return async (req, res, next) => {
-    try {
-      await Promise.resolve(handler(req, res, next)).then((result) => {
+
+  return (req, res, next) => {
+    Promise.resolve(handler(req, res, next))
+      .then((result) => {
         try {
           if (!res.headersSent) {
             if (isResponder(result)) {
               log('captured responder');
+
               return triggerResponder(result, responseFormat);
             }
           } else {
@@ -74,11 +91,10 @@ export function createHandler(
         } catch (err) {
           log('error occurred whilst processing request result: %s', err.stack);
         }
+      })
+      .catch((err) => {
+        return errorHandler(opt)(err, req, res, next);
       });
-    } catch (err) {
-      log('caught error');
-      return next(err);
-    }
   };
 }
 
