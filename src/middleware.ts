@@ -8,19 +8,22 @@ import debug from 'debug';
 
 const baseLogger = debug('express-mate:middleware');
 
-import { wrapError, isApiError } from './ApiError';
-import { isResponder, triggerResponder, Responder } from './Responder';
+import { isResponder } from './utils/responders';
+import { Responder } from './internals/Responder';
 import { BaseOptions, injectSettings } from './settings';
+import { wrapError, isApiError } from './responders/ApiError';
 
 export interface ErrorHandlerOptions extends BaseOptions {}
 
+/**
+ *
+ * @param opt
+ */
 export function errorHandler(
   opt: ErrorHandlerOptions = {}
 ): ErrorRequestHandler {
   return (err, _, res, next) => {
-    const { handleErrors, ignoreNativeErrors, responseFormat } = injectSettings(
-      opt
-    );
+    const { handleErrors, ignoreNativeErrors } = injectSettings(opt);
 
     const log = baseLogger.extend('errorHandler');
 
@@ -29,11 +32,7 @@ export function errorHandler(
         if (!res.headersSent) {
           let responder: Responder | undefined;
 
-          if (isApiError(err)) {
-            log('caught error responder');
-
-            responder = err;
-          } else if (!ignoreNativeErrors) {
+          if (!ignoreNativeErrors) {
             log('caught native error');
             log('attempting to wrap error: %', err);
 
@@ -48,8 +47,8 @@ export function errorHandler(
             }
           }
 
-          if (responder) {
-            return triggerResponder(responder, responseFormat);
+          if (isResponder(responder)) {
+            return responder.trigger();
           }
         } else {
           log('headers already sent, ignoring errors');
@@ -67,11 +66,16 @@ export function errorHandler(
 
 export interface HandlerOptions extends BaseOptions {}
 
+/**
+ *
+ * @param handler
+ * @param opt
+ */
 export function createHandler(
   handler: RequestHandler,
   opt: HandlerOptions = {}
 ): RequestHandler {
-  const { responseFormat } = injectSettings(opt);
+  const {} = injectSettings(opt);
 
   const log = baseLogger.extend('createHandler');
 
@@ -83,7 +87,7 @@ export function createHandler(
             if (isResponder(result)) {
               log('captured responder');
 
-              return triggerResponder(result, responseFormat);
+              return result.trigger();
             }
           } else {
             log('headers already sent, ignoring responders');
